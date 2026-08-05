@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Race '26 — hartă hibridă v2 | BBSO</title>
+<style>
+:root{
+  --bg:#0a0f1e; --bg2:#0e1529; --panel:#151f3d; --panel2:#1c2950;
+  --line:#2b3866; --txt:#e9edfa; --muted:#8d9ac6;
+  --gold:#f5c451; --blue:#2f6ae0; --red:#d62828; --green:#127c4a; --violet:#4c1d95;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+
+header{position:sticky;top:0;z-index:60;background:rgba(10,15,30,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line)}
+.hw{max-width:1500px;margin:0 auto;padding:11px 18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.flag{width:36px;height:36px;border-radius:10px;
+  background:repeating-conic-gradient(#0a0f1e 0% 25%,#f5c451 0% 50%) 50%/11px 11px;box-shadow:0 0 0 1px var(--line)}
+.ttl{font-weight:800;letter-spacing:.12em;font-size:17px}.ttl span{color:var(--gold)}
+.sub{font-size:10.5px;color:var(--muted);letter-spacing:.16em;text-transform:uppercase;margin-top:2px}
+
+button{font:inherit;font-size:12.5px;font-weight:600;background:var(--panel);color:var(--txt);
+  border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+button:hover{background:var(--panel2)}
+button.on{background:var(--gold);border-color:var(--gold);color:#2a1e00}
+button.gold{background:linear-gradient(180deg,#f5c451,#e0a92c);color:#2a1e00;border-color:#c9971f}
+button.dgr{color:#ffb4b4;border-color:#5a2b2b}button.dgr:hover{background:#3a1c1c}
+.acts{display:flex;gap:7px;margin-left:auto;flex-wrap:wrap;align-items:center}
+.mapacts{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+#saveflag{font-size:11.5px;color:#3ddc97;opacity:0;transition:opacity .3s;white-space:nowrap}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{border:none;border-radius:0;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:none}
+.seg button.on.w-clasic{background:#fff;color:#111}
+.seg button.on.w-albastru{background:var(--blue);color:#fff}
+.seg button.on.w-rosu{background:var(--red);color:#fff}
+
+.bar{max-width:1500px;margin:0 auto;padding:10px 18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.hint{font-size:12px;color:var(--muted);flex:1;min-width:220px}.hint b{color:var(--gold)}
+
+.stage{max-width:1500px;margin:0 auto;padding:6px 18px 60px}
+.canvas{position:relative;border:1px dashed rgba(43,56,102,.7);border-radius:16px;overflow:hidden;
+  background:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px) 0 0/100% 28px,
+             linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px) 0 0/28px 100%,var(--bg2);
+  min-height:600px;user-select:none}
+svg.wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+svg.wires path.hit{pointer-events:stroke;cursor:move}
+svg.wires .wp,svg.wires .ep{pointer-events:all;cursor:grab}
+svg.wires .wp:active,svg.wires .ep:active{cursor:grabbing}
+svg.wires .btn{pointer-events:all;cursor:pointer}
+svg.wires .btn:hover rect{filter:brightness(1.35)}
+.rail{position:absolute;left:0;top:0;bottom:0;width:60px;background:rgba(11,17,36,.55);border-right:1px solid var(--line);z-index:1}
+.lane{position:absolute;top:12px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;z-index:2}
+.rnum{position:absolute;left:0;width:60px;text-align:center;font-weight:800;font-size:13px;color:#5f6c9c;z-index:2}
+
+/* ---------- CĂSUȚE ---------- */
+.node{position:absolute;z-index:3;width:250px;border-radius:12px;padding:11px 13px;cursor:pointer;
+  box-shadow:0 8px 22px rgba(0,0,0,.4);transition:box-shadow .15s,transform .08s;border:1px solid transparent}
+.node:hover{box-shadow:0 14px 30px rgba(0,0,0,.55)}
+.node.moved{box-shadow:0 14px 34px rgba(0,0,0,.6)}
+.node.drag{z-index:30;transform:scale(1.02);cursor:grabbing}
+.node.src{outline:3px solid var(--gold);outline-offset:2px}
+
+.node.clasic  {background:#ffffff;color:#1c2233;border-color:#c9d0e4}
+.node.albastru{background:linear-gradient(180deg,#3b7ceb,#2f6ae0);color:#fff;border-color:#1d4ed8}
+.node.rosu    {background:linear-gradient(180deg,#e33a3a,#d62828);color:#fff;border-color:#a81c1c}
+
+.nt{font-weight:800;font-size:14px;line-height:1.3}
+.nm{font-size:11.5px;line-height:1.5;margin-top:5px;opacity:.85;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.node.clasic .nm{color:#4a5268}
+.node.albastru .nm,.node.rosu .nm{color:rgba(255,255,255,.9)}
+
+/* scris colorat pe tip, în căsuța albă */
+.node.clasic .nt.k-fizica  {color:#c81e1e}
+.node.clasic .nt.k-mind    {color:#127c4a}
+.node.clasic .nt.k-indiciu,
+.node.clasic .nt.k-search  {color:#4c1d95}
+.node.clasic .nt.k-desen   {color:#1e3a8a}
+.node.clasic .nt.k-proba   {color:#334155}
+.node.clasic .nt.k-logistic{color:#5b6478}
+.node.clasic .nt.k-decizie {color:#a16207}
+.node.albastru .nt,.node.rosu .nt{color:#fff}
+
+.chip{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  padding:2.5px 7px;border-radius:5px;margin-top:7px;margin-right:4px}
+.node.clasic .chip{background:#eef1f8;color:#4a5268}
+.node.clasic .chip.k-fizica{background:#fdeaea;color:#c81e1e}
+.node.clasic .chip.k-mind{background:#e6f6ee;color:#127c4a}
+.node.clasic .chip.k-indiciu,.node.clasic .chip.k-search{background:#f0e9fb;color:#4c1d95}
+.node.clasic .chip.k-desen{background:#e8eefb;color:#1e3a8a}
+.node.clasic .chip.k-decizie{background:#fdf3d8;color:#8a5a06}
+.node.albastru .chip,.node.rosu .chip{background:rgba(255,255,255,.2);color:#fff}
+.piece{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:6px;
+  background:linear-gradient(180deg,#f5c451,#e0a92c);color:#2a1e00;font-weight:800;font-size:11.5px;
+  vertical-align:middle;margin-left:5px;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.todo{display:inline-block;font-size:9.5px;font-weight:800;padding:2.5px 7px;border-radius:5px;margin-top:7px;
+  background:rgba(61,220,151,.16);color:#0d7a4f;border:1px dashed rgba(18,124,74,.5)}
+.node.albastru .todo,.node.rosu .todo{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.5)}
+
+/* ---------- DRAWER ---------- */
+.scrim{position:fixed;inset:0;background:rgba(4,7,16,.6);backdrop-filter:blur(3px);z-index:80;display:none}
+.scrim.open{display:block}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(460px,100%);z-index:90;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#141c36,#0c1326);border-left:1px solid var(--line);
+  box-shadow:-20px 0 60px rgba(0,0,0,.55);transform:translateX(102%);transition:transform .25s cubic-bezier(.2,.8,.3,1)}
+.drawer.open{transform:none}
+.dh{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+.dh h2{margin:0;font-size:17px;flex:1;line-height:1.3}
+.db{padding:16px 18px;overflow-y:auto;flex:1}
+.df{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+.f{margin-bottom:13px}
+.f label{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.f input,.f textarea,.f select{width:100%;background:#0d1428;border:1px solid var(--line);border-radius:9px;
+  color:var(--txt);font:inherit;font-size:13.5px;padding:9px 11px}
+.f input:focus,.f textarea:focus,.f select:focus{outline:none;border-color:var(--gold)}
+.f textarea{min-height:86px;resize:vertical}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.close{background:none;border:none;color:var(--muted);font-size:24px;padding:0 4px;line-height:1}
+.close:hover{color:#fff;background:none}
+.view .f .v{font-size:13.5px;line-height:1.6;white-space:pre-wrap}
+.view .f .v.e{color:#5c6791;font-style:italic}
+.swatch{display:flex;gap:8px;margin-bottom:14px}
+.swatch div{flex:1;text-align:center;padding:9px;border-radius:9px;font-size:11px;font-weight:800;cursor:pointer;border:2px solid transparent}
+.sw-clasic{background:#fff;color:#1c2233}.sw-albastru{background:var(--blue);color:#fff}.sw-rosu{background:var(--red);color:#fff}
+.swatch div.sel{border-color:var(--gold)}
+
+.legend{max-width:1500px;margin:0 auto;padding:0 18px 50px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px;color:var(--muted);align-items:center}
+.legend i{display:inline-block;width:22px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+
+/* ---------- TABURI ---------- */
+.vtabs{display:flex;gap:6px;margin-left:18px}
+.vt{background:var(--panel);border:1px solid var(--line);color:var(--muted);font-size:13px;padding:8px 14px}
+.vt.on{background:linear-gradient(180deg,#f5c451,#e0a92c);color:#2a1e00;border-color:#c9971f}
+
+/* ---------- LISTA ---------- */
+.tblwrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg2)}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.tbl th{background:#111a33;color:var(--muted);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);font-weight:800}
+table.tbl td{padding:11px 14px;border-bottom:1px solid rgba(43,56,102,.55);vertical-align:top}
+table.tbl tr:last-child td{border-bottom:none}
+table.tbl tr:hover td{background:rgba(255,255,255,.02)}
+td.cnr{width:46px;color:#5f6c9c;font-weight:800;text-align:center}
+td.cact{width:31%}
+td.cres{width:27%}
+td.csto{width:31%}
+td.cbtn{width:80px;text-align:right;white-space:nowrap}
+.actname{font-weight:700;font-size:13.5px}
+.cellname{width:calc(100% - 30px);background:transparent;border:1px solid transparent;border-radius:7px;
+  padding:5px 7px;font:inherit;font-weight:700;font-size:13.5px}
+.cellname:hover{border-color:var(--line);background:#0d1428}
+.cellname:focus{outline:none;border-color:var(--gold);background:#0d1428}
+.actname.b-rosu{color:#ff8f8f}.actname.k-fizica{color:var(--txt)}.actname.k-mind{color:#43d69a}
+.actname.k-indiciu,.actname.k-search{color:#b9a1f5}
+.actname.k-desen{color:#8fb6ff}.actname.k-decizie{color:#f5c451}
+.actname.k-proba,.actname.k-logistic{color:var(--txt)}
+.actmeta{font-size:10.5px;color:var(--muted);margin-top:4px}
+.actmeta .bdot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.cellinput{width:100%;background:#0d1428;border:1px solid var(--line);border-radius:8px;color:var(--txt);
+  font:inherit;font-size:12.5px;padding:8px 10px;min-height:64px;resize:vertical}
+.cellinput:focus{outline:none;border-color:var(--gold)}
+.cellinput::placeholder{color:#4d5678}
+.stoprev{font-size:12px;color:#c6cfee;line-height:1.5;background:#0d1428;border:1px solid var(--line);
+  border-radius:8px;padding:8px 10px;max-height:76px;overflow:hidden;white-space:pre-wrap;margin-bottom:7px}
+.stohead{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:800;margin-bottom:4px}
+.mini{font-size:11.5px;padding:6px 9px}
+.listbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+.listbar .n{font-size:12px;color:var(--muted);margin-left:auto}
+
+/* ---------- MODAL STORY ---------- */
+.modal{position:fixed;inset:0;z-index:120;display:none;align-items:center;justify-content:center;
+  background:rgba(4,7,16,.7);backdrop-filter:blur(4px);padding:20px}
+.modal.open{display:flex}
+.mcard{width:min(680px,100%);max-height:90vh;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#151f3d,#0c1326);border:1px solid var(--line);border-radius:16px;
+  box-shadow:0 30px 70px rgba(0,0,0,.6)}
+.mh{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center}
+.mh h3{margin:0;font-size:17px;flex:1}
+.mb{padding:18px 20px;overflow-y:auto;flex:1}
+.mf{padding:13px 20px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+.mb textarea#smText{min-height:280px;font-size:15px;line-height:1.65;font-family:Georgia,'Times New Roman',serif}
+.mnote{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+
+/* ---------- PRINT ---------- */
+#printarea{display:none}
+@media print{
+  body>*{display:none!important}
+  #printarea{display:block!important}
+  html,body{background:#fff!important}
+  @page{margin:14mm}
+  .psheet{page-break-after:always;display:flex;align-items:center;justify-content:center;min-height:250mm}
+  .psheet:last-child{page-break-after:auto}
+  .pframe{border:3px double #111;border-radius:6px;padding:20mm 16mm;width:100%;text-align:center;background:#fff}
+  .pkicker{font:700 9pt/1 'Segoe UI',sans-serif;letter-spacing:.32em;text-transform:uppercase;color:#666;margin-bottom:12mm}
+  .phead{font:800 20pt/1.2 'Segoe UI',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#111;margin-bottom:9mm}
+  .prule{width:40mm;height:2px;background:#111;margin:0 auto 10mm}
+  .ptext{font:400 14pt/1.85 Georgia,'Times New Roman',serif;color:#000;white-space:pre-wrap;text-align:left;max-width:150mm;margin:0 auto}
+  .pfoot{margin-top:14mm;font:400 8pt/1 'Segoe UI',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#888}
+}
+.sq{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+
+.gate{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(900px 500px at 50% 0%,rgba(245,196,81,.07),transparent 60%),#080d19}
+.gate.hidden{display:none}
+.gcard{width:min(370px,92vw);background:linear-gradient(180deg,#151f3d,#0d1428);border:1px solid #2b3866;
+  border-radius:18px;padding:30px 26px;text-align:center;box-shadow:0 30px 70px rgba(0,0,0,.6)}
+.gflag{width:52px;height:52px;border-radius:14px;margin:0 auto 16px;
+  background:repeating-conic-gradient(#0a0f1e 0% 25%,#f5c451 0% 50%) 50%/16px 16px;box-shadow:0 0 0 1px #2b3866}
+.gt{font-weight:800;letter-spacing:.14em;font-size:21px}.gt span{color:#f5c451}
+.gs{font-size:10.5px;color:#8d9ac6;letter-spacing:.16em;text-transform:uppercase;margin:6px 0 22px}
+.gcard input{width:100%;background:#0b1225;border:1px solid #2b3866;border-radius:10px;color:#e9edfa;
+  font:inherit;font-size:14px;padding:11px 13px;margin-bottom:10px}
+.gcard input:focus{outline:none;border-color:#f5c451}
+.gbtn{width:100%;justify-content:center;background:linear-gradient(180deg,#f5c451,#e0a92c);color:#2a1e00;
+  border-color:#c9971f;font-size:14px;padding:11px;margin-top:4px}
+.gbtn:disabled{opacity:.6;cursor:default}
+.gerr{color:#ff9b9b;font-size:12.5px;min-height:18px;margin-top:10px}
+.gnote{color:#5c6791;font-size:11px;line-height:1.5;margin-top:14px}
+.busy{position:absolute;top:-11px;right:8px;background:#3ddc97;color:#06301f;font-size:9.5px;font-weight:800;
+  padding:2px 7px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.4);white-space:nowrap;z-index:5}
+.busy.inline{position:static;display:inline-block;margin-left:8px;vertical-align:middle}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hw">
+    <div class="flag"></div>
+    <div>
+      <div class="ttl">THE <span>RACE</span> '26</div>
+      <div class="sub">BBSO · roadmap · v08-05.23:52</div>
+    </div>
+    <div class="vtabs">
+      <button class="vt on" data-v="map">Hartă</button>
+      <button class="vt" data-v="list">Listă activități</button>
+      <button class="vt" data-v="brain">Brainstorming</button>
+    </div>
+    <div class="acts">
+      <span class="mapacts" id="mapacts">
+        <button id="bAdd" class="gold">+ Căsuță</button>
+        <button id="bDraw">✎ Trage linie</button>
+        <div class="seg" id="wseg">
+          <button class="w-clasic on" data-c="clasic">Clasic</button>
+          <button class="w-albastru" data-c="albastru">Albastru</button>
+          <button class="w-rosu" data-c="rosu">Roșu</button>
+        </div>
+              </span>
+      <span id="whoflag" style="font-size:11.5px;color:#5f6c9c;white-space:nowrap">●</span><span id="saveflag"></span>
+      <button id="bSave" class="gold">💾 Salvează</button>
+      <button id="bExport">⭳ Export</button>
+      <button id="bImport">⭱ Import</button>
+      <input type="file" id="fIn" accept="application/json" style="display:none">
+    </div>
+  </div>
+</header>
+
+<div class="bar"><span class="hint" id="hint"></span></div>
+
+<div class="stage">
+  <div class="canvas" id="canvas"><svg class="wires" id="wires"></svg></div>
+</div>
+
+<div class="stage" id="stageList" style="display:none">
+  <div class="listbar">
+    <button id="bPrintAll" class="gold">⎙ Printează toate story-urile</button>
+    <button id="bAdd2">+ Activitate</button>
+    <span class="n" id="listCount"></span>
+  </div>
+  <div class="tblwrap">
+    <table class="tbl">
+      <thead><tr>
+        <th style="text-align:center">#</th>
+        <th>Activitate</th>
+        <th>Resurse / recuzită necesară</th>
+        <th>Story — textul din plic</th>
+        <th></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="stage" id="stageBrain" style="display:none">
+  <div class="listbar">
+    <button id="bAddIdea" class="gold">+ Idee</button>
+    <span class="n" id="brainCount"></span>
+  </div>
+  <div class="tblwrap">
+    <table class="tbl">
+      <thead><tr>
+        <th style="text-align:center;width:46px">#</th>
+        <th style="width:24%">Titlu idee</th>
+        <th>Descriere</th>
+        <th style="width:24%">Propunere: la ce activitate</th>
+        <th style="width:50px"></th>
+      </tr></thead>
+      <tbody id="brainBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal" id="storyModal">
+  <div class="mcard">
+    <div class="mh"><h3 id="smTitle">Story</h3><button class="close" id="smClose">×</button></div>
+    <div class="mb">
+      <div class="f"><label>Titlu scris pe plic</label><input id="smHead" placeholder="ex: INDICIUL 3"></div>
+      <div class="f"><label>Textul care intră în plic</label>
+        <textarea id="smText" placeholder="Scrie aici indiciul, ghicitoarea sau povestea pe care o găsește echipa în plic…"></textarea></div>
+      <div class="mnote">Textul se printează pe o pagină A4 separată, încadrat, cu literă mare — gata de tăiat și pus în plic.</div>
+    </div>
+    <div class="mf">
+      <button class="gold" id="smSave">Salvează</button>
+      <button id="smPrint">⎙ Printează plicul</button>
+      <button class="dgr" id="smDel" style="margin-left:auto">Șterge story-ul</button>
+    </div>
+  </div>
+</div>
+
+<div class="legend" id="legendBox">
+  <span><span class="sq" style="background:#fff"></span>căsuță clasică</span>
+  <span><span class="sq" style="background:#2f6ae0"></span>ramura albastră</span>
+  <span><span class="sq" style="background:#d62828"></span>ramura roșie</span>
+  <span style="margin-left:10px">scris: <b style="color:#e05a5a">probă fizică</b> · <b style="color:#2ecc8f">mind game</b> · <b style="color:#a78bfa">indiciu</b></span>
+  <span><i style="background:#f5c451"></i>linie clasică</span>
+  <span><i style="background:#2f6ae0"></i>albastră</span>
+  <span><i style="background:#d62828"></i>roșie (skip)</span>
+  <span><span class="piece">1</span> piesă din hartă</span>
+</div>
+
+<div id="printarea"></div>
+
+
+<div class="gate" id="gate">
+  <form class="gcard" id="gform" autocomplete="on">
+    <div class="gflag"></div>
+    <div class="gt">THE <span>RACE</span> '26</div>
+    <div class="gs">BBSO · acces echipa de organizare</div>
+    <input id="gn" placeholder="Numele tau (ca sa stie ceilalti cine editeaza)" autocomplete="name">
+    <input id="gu" placeholder="Utilizator" autocomplete="username" autocapitalize="off" spellcheck="false">
+    <input id="gp" type="password" placeholder="Parola" autocomplete="current-password">
+    <button type="submit" class="gbtn" id="gb">Intra</button>
+    <div class="gerr" id="gerr"></div>
+    <div class="gnote">Continutul e criptat. Fara parola corecta, harta nu se poate citi nici din sursa paginii.</div>
+  </form>
+</div>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="dh"><h2 id="dTitle">—</h2><button class="close" id="dClose">×</button></div>
+  <div class="db" id="dBody"></div>
+  <div class="df" id="dFoot"></div>
+</aside>
+
+<script>
+/* ==================== DATE ==================== */
+const KINDS={
+  indiciu:'Indiciu', search:'Search', fizica:'Probă fizică', mind:'Mind game',
+  desen:'Desenat', proba:'Probă', logistic:'Logistic', decizie:'Punct de decizie'
+};
+const BRANCH={clasic:'Clasic', albastru:'Albastru', rosu:'Roșu'};
+
+let STEPS=[], WIRES=[];
+const ENC={"s":"uW7x+E3Cy9XYZXICJAyKPw==","i":"FUyBbEmK36FhvMmB","c":"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"};
+
+const WC={clasic:'#f5c451',albastru:'#2f6ae0',rosu:'#d62828'};
+const ROW=112, LANE_I=90, LANE_P=400, NODE_W=250;
+
+let pos={}, moved={}, drawing=false, wireColor='clasic', src=null, sel=null, adding=false;
+let selWire=null, wDrag=null, wpTap=null;
+const cv=document.getElementById('canvas'), svg=document.getElementById('wires');
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function laneX(s){ return (s.k==='indiciu'||s.k==='search'||s.k==='decizie') ? LANE_I : LANE_P; }
+function tidy(){ pos={};moved={}; STEPS.forEach((s,i)=>pos[s.id]={x:laneX(s),y:58+i*ROW}); }
+function renumber(){
+  STEPS.sort((a,b)=>{
+    const A=pos[a.id]||{x:0,y:0}, B=pos[b.id]||{x:0,y:0};
+    return (A.y-B.y) || (A.x-B.x);
+  });
+  STEPS.forEach((s,i)=>s.nr=i+1);
+}
+function ensurePos(){ STEPS.forEach((s,i)=>{ if(!pos[s.id]) pos[s.id]={x:laneX(s),y:58+i*ROW}; }); }
+function height(){ let m=0; STEPS.forEach(s=>{m=Math.max(m,pos[s.id].y)}); return m+180; }
+
+/* ==================== RENDER ==================== */
+function render(){
+  ensurePos();
+  cv.querySelectorAll('.node,.rail,.lane,.rnum').forEach(e=>e.remove());
+  cv.style.height=height()+'px';
+
+  const rail=document.createElement('div');rail.className='rail';cv.appendChild(rail);
+  const l1=document.createElement('div');l1.className='lane';l1.style.left=LANE_I+'px';l1.textContent='Indicii / decizii';cv.appendChild(l1);
+  const l2=document.createElement('div');l2.className='lane';l2.style.left=LANE_P+'px';l2.textContent='Probe';cv.appendChild(l2);
+  STEPS.forEach(s=>{
+    const n=document.createElement('div');n.className='rnum';
+    n.style.top=(pos[s.id].y+14)+'px';n.textContent=s.nr;cv.appendChild(n);
+  });
+
+  STEPS.forEach(s=>{
+    const d=document.createElement('div');
+    d.className=`node ${s.b}${src===s.id?' src':''}${moved[s.id]?' moved':''}`;
+    d.dataset.id=s.id;d.style.left=pos[s.id].x+'px';d.style.top=pos[s.id].y+'px';
+    if(s.k==='decizie') d.style.width=(LANE_P-LANE_I+NODE_W)+'px';
+    d.innerHTML=`<div class="nt k-${s.k}">${esc(s.t)}${s.piesa?`<span class="piece">${s.piesa}</span>`:''}</div>
+      ${s.d?`<div class="nm">${esc(s.d)}</div>`:''}
+      <span class="chip k-${s.k}">${KINDS[s.k]}</span>
+      ${s.b!=='clasic'?`<span class="chip">${BRANCH[s.b]}</span>`:''}
+      ${s.todo?'<span class="todo">de decis</span>':''}`;
+    cv.appendChild(d);
+  });
+  requestAnimationFrame(wiresDraw);
+}
+function box(id){const el=cv.querySelector(`.node[data-id="${id}"]`);if(!el)return null;
+  return{x:pos[id].x,y:pos[id].y,w:el.offsetWidth,h:el.offsetHeight};}
+
+/* punctele de plecare/sosire + curbura implicită */
+/* Sageata intra pe latura cea mai apropiata a casutei tinta, natural.
+   Singura exceptie: liniile de skip din aceeasi banda ocolesc lateral,
+   ca sa nu treaca peste casutele dintre ele. */
+const GAP=9;
+let SPREAD={};
+function computeSpread(){
+  SPREAD={}; const arr=[], used=[];
+  WIRES.forEach((w,i)=>{
+    const A=box(w.a),B=box(w.b); if(!A||!B) return;
+    if(Math.abs(A.x-B.x)<60 && Math.abs(B.y-(A.y+A.h))>ROW*0.85)
+      arr.push({i, y0:Math.min(A.y,B.y), y1:Math.max(A.y+A.h,B.y+B.h)});
+  });
+  arr.sort((a,b)=>a.y0-b.y0).forEach(o=>{
+    let k=0;
+    while(used.some(u=>u.k===k && !(o.y1<u.y0 || o.y0>u.y1))) k++;
+    SPREAD[o.i]=k; used.push({k,y0:o.y0,y1:o.y1});
+  });
+}
+function outDir(B,p,k){
+  const cx=B.x+B.w/2, cy=B.y+B.h/2;
+  const vx=(p.x-cx)/((B.w/2)||1), vy=(p.y-cy)/((B.h/2)||1);
+  return Math.abs(vx)>=Math.abs(vy) ? {x:(vx>=0?1:-1)*k,y:0} : {x:0,y:(vy>=0?1:-1)*k};
+}
+function anchors(a,b,wi,w){
+  const A=box(a),B=box(b); if(!A||!B)return null;
+  const r=autoAnchors(A,B,wi);
+  if(w&&w.a1){ r.p1={x:A.x+w.a1.dx, y:A.y+w.a1.dy}; r.d1=outDir(A,r.p1,75); }
+  if(w&&w.a2){ r.p2={x:B.x+w.a2.dx, y:B.y+w.a2.dy}; r.d2=outDir(B,r.p2,75); }
+  return r;
+}
+function autoAnchors(A,B,wi){
+  const ac={x:A.x+A.w/2,y:A.y+A.h/2}, bc={x:B.x+B.w/2,y:B.y+B.h/2};
+  const dx=bc.x-ac.x, dy=bc.y-ac.y;
+  if(Math.abs(A.x-B.x)<60 && Math.abs(B.y-(A.y+A.h))>ROW*0.85){   // skip lung: ocolire laterala
+    const g=Math.min(190,80+Math.abs(dy)*.28)+(SPREAD[wi]||0)*34;
+    return {p1:{x:A.x+A.w,y:ac.y}, p2:{x:B.x+B.w+GAP,y:bc.y}, d1:{x:g,y:0}, d2:{x:g,y:0}};
+  }
+  if(Math.abs(dy)>Math.abs(dx)*.75){                              // vertical
+    const dn=dy>0, k=Math.max(40,Math.abs(dy)*.45);
+    return {p1:{x:ac.x, y:dn?A.y+A.h:A.y},
+            p2:{x:bc.x, y:dn?B.y-GAP:B.y+B.h+GAP},
+            d1:{x:0,y:dn?k:-k}, d2:{x:0,y:dn?-k:k}};
+  }
+  const rt=dx>0, k=Math.max(40,Math.abs(dx)*.45);                 // orizontal
+  return {p1:{x:rt?A.x+A.w:A.x, y:ac.y},
+          p2:{x:rt?B.x-GAP:B.x+B.w+GAP, y:bc.y},
+          d1:{x:rt?k:-k,y:0}, d2:{x:rt?-k:k,y:0}};
+}
+function hermite(P,t0,tn){
+  const n=P.length, T=[];
+  for(let i=0;i<n;i++){
+    if(i===0) T.push(t0);
+    else if(i===n-1) T.push(tn);
+    else T.push({x:(P[i+1].x-P[i-1].x)*.5, y:(P[i+1].y-P[i-1].y)*.5});
+  }
+  let d=`M${P[0].x},${P[0].y}`;
+  for(let i=0;i<n-1;i++){
+    const c1={x:P[i].x+T[i].x/3,     y:P[i].y+T[i].y/3};
+    const c2={x:P[i+1].x-T[i+1].x/3, y:P[i+1].y-T[i+1].y/3};
+    d+=` C${c1.x},${c1.y} ${c2.x},${c2.y} ${P[i+1].x},${P[i+1].y}`;
+  }
+  return d;
+}
+function geo(w,wi){
+  const an=anchors(w.a,w.b,wi,w); if(!an) return null;
+  const W=cv.clientWidth||2000, H=cv.scrollHeight||4000;
+  const wp=(w.pts||[]).map(q=>({x:Math.max(10,Math.min(an.p1.x+q.dx,W-10)), y:Math.max(10,Math.min(an.p1.y+q.dy,H-10))}));
+  const P=[an.p1, ...wp, an.p2];
+  const first=wp[0]||an.p2, last=wp[wp.length-1]||an.p1;
+  const cap=(v,ref)=>{
+    const m=Math.hypot(v.x,v.y)||1;
+    const lim=Math.max(60, 2.2*ref);
+    const f=Math.min(3*m, lim)/m;
+    return {x:v.x*f, y:v.y*f};
+  };
+  const t0=cap(an.d1, Math.hypot(first.x-an.p1.x, first.y-an.p1.y));
+  const tn=cap({x:-an.d2.x,y:-an.d2.y}, Math.hypot(an.p2.x-last.x, an.p2.y-last.y));
+  return {p1:an.p1, p2:an.p2, wp, d:hermite(P,t0,tn)};
+}
+function nearestT(el,x,y){
+  const L=el.getTotalLength(); let best=Infinity, bt=0;
+  for(let i=0;i<=120;i++){
+    const q=el.getPointAtLength(L*i/120);
+    const dd=(q.x-x)*(q.x-x)+(q.y-y)*(q.y-y);
+    if(dd<best){best=dd;bt=i/120;}
+  }
+  return bt;
+}
+function wiresDraw(){
+  const defs=`<defs>${Object.entries(WC).map(([k,v])=>
+    `<marker id="m-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="${v}"/></marker>`).join('')}</defs>`;
+  let out=defs;
+  computeSpread();
+  WIRES.forEach((w,i)=>{
+    const g=geo(w,i); if(!g) return;
+    const on=selWire===i;
+    out+=`<path d="${g.d}" fill="none" stroke="${WC[w.c]}" stroke-width="${on?4:(w.c==='clasic'?2:2.8)}"
+      ${w.c==='rosu'?'stroke-dasharray="8 5"':''} marker-end="url(#m-${w.c})" opacity="${on?1:.92}"/>
+      <path class="hit" data-i="${i}" d="${g.d}" fill="none" stroke="transparent" stroke-width="22"></path>`;
+  });
+  svg.innerHTML=out;
+
+  if(selWire!==null && WIRES[selWire]){
+    const g=geo(WIRES[selWire],selWire);
+    const el=svg.querySelector(`.hit[data-i="${selWire}"]`);
+    let btn={x:(g.p1.x+g.p2.x)/2, y:(g.p1.y+g.p2.y)/2};
+    if(el){ const q=el.getPointAtLength(el.getTotalLength()*.16); btn={x:q.x,y:q.y}; }
+    let ov=g.wp.map((p,k)=>
+      `<circle class="wp" data-k="${k}" cx="${p.x}" cy="${p.y}" r="6" fill="#f5c451" stroke="#0a0f1e" stroke-width="2"><title>Trage ca să îndoi. Dublu-click = șterge punctul</title></circle>`).join('');
+    ov+=`<rect class="ep" data-e="1" x="${g.p1.x-6}" y="${g.p1.y-6}" width="12" height="12" rx="3"
+           fill="#3ddc97" stroke="#0a0f1e" stroke-width="2"><title>Trage: de unde pleacă linia</title></rect>
+         <rect class="ep" data-e="2" x="${g.p2.x-6}" y="${g.p2.y-6}" width="12" height="12" rx="3"
+           fill="#3ddc97" stroke="#0a0f1e" stroke-width="2"><title>Trage: unde ajunge vârful săgeții</title></rect>`;
+    ov+=`<g class="btn" data-act="reset" transform="translate(${btn.x-27},${btn.y-13})">
+        <rect width="24" height="24" rx="7" fill="#151f3d" stroke="#f5c451" stroke-width="1.5"/>
+        <text x="12" y="17" text-anchor="middle" font-size="13" fill="#f5c451" font-family="system-ui">↺</text></g>
+      <g class="btn" data-act="del" transform="translate(${btn.x+3},${btn.y-13})">
+        <rect width="24" height="24" rx="7" fill="#3a1c1c" stroke="#d62828" stroke-width="1.5"/>
+        <text x="12" y="17" text-anchor="middle" font-size="14" fill="#ff9b9b" font-family="system-ui">×</text></g>`;
+    svg.insertAdjacentHTML('beforeend',ov);
+  }
+
+  // varfuri intermediare de directie pe liniile lungi
+  WIRES.forEach((w,i)=>{
+    const el=svg.querySelector(`.hit[data-i="${i}"]`); if(!el) return;
+    const L=el.getTotalLength(); if(L<240) return;
+    let marks='';
+    for(let d=130; d<L-70; d+=170){
+      const q1=el.getPointAtLength(d), q2=el.getPointAtLength(Math.min(d+8,L));
+      const ang=Math.atan2(q2.y-q1.y, q2.x-q1.x)*180/Math.PI;
+      marks+=`<path d="M-6,-4.5 L4,0 L-6,4.5" fill="none" stroke="${WC[w.c]}" stroke-width="2.2" stroke-linecap="round"
+        transform="translate(${q1.x},${q1.y}) rotate(${ang})" opacity=".95"/>`;
+    }
+    if(marks) el.insertAdjacentHTML('beforebegin',marks);
+  });
+  svg.querySelectorAll('.hit').forEach(el=>el.addEventListener('mousedown',e=>{
+    e.stopPropagation();
+    const i=+el.dataset.i;
+    if(selWire!==i){ selWire=i; wiresDraw(); hint(); }
+    const w=WIRES[i]; w.pts=w.pts||[];
+    const r=cv.getBoundingClientRect();
+    const x=e.clientX-r.left, y=e.clientY-r.top;
+    const g=geo(w,i);
+    let k=g.wp.findIndex(q=>Math.hypot(q.x-x,q.y-y)<16);
+    if(k>=0){ wDrag={i,k}; return; }
+    const path=svg.querySelector(`.hit[data-i="${i}"]`);
+    const tc=nearestT(path,x,y);
+    let idx=g.wp.length;
+    for(let j=0;j<g.wp.length;j++){ if(nearestT(path,g.wp[j].x,g.wp[j].y)>tc){ idx=j; break; } }
+    wDrag={i, k:null, idx, ox:x, oy:y};      // punctul se creeaza abia cand tragi
+  }));
+  svg.querySelectorAll('.ep').forEach(r=>r.addEventListener('mousedown',e=>{
+    e.stopPropagation(); wDrag={i:selWire, ep:+r.dataset.e};
+  }));
+  svg.querySelectorAll('.wp').forEach(c=>{
+    c.addEventListener('mousedown',e=>{
+      e.stopPropagation();
+      const k=+c.dataset.k, now=Date.now();
+      if(wpTap && wpTap.i===selWire && wpTap.k===k && now-wpTap.t<420){
+        wpTap=null; wDrag=null;
+        WIRES[selWire].pts.splice(k,1);
+        wiresDraw(); hint(); touch(); return;
+      }
+      wpTap={i:selWire,k,t:now};
+      wDrag={i:selWire,k};
+    });
+  });
+  svg.querySelectorAll('.btn').forEach(b=>b.addEventListener('mousedown',e=>{
+    e.stopPropagation();
+    if(b.dataset.act==='del'){ WIRES.splice(selWire,1); selWire=null; }
+    else { const w=WIRES[selWire]; delete w.pts; delete w.a1; delete w.a2; }
+    wiresDraw(); hint(); touch();
+  }));
+}
+/* tragi de oriunde de pe linie */
+function wireMove(e){
+  if(!wDrag) return;
+  const w=WIRES[wDrag.i]; if(!w){ wDrag=null; return; }
+  const an=anchors(w.a,w.b,wDrag.i,w); if(!an) return;
+  const r=cv.getBoundingClientRect();
+  const x=e.clientX-r.left, y=e.clientY-r.top;
+  const cx=Math.max(10,Math.min(x,cv.clientWidth-10));
+  const cy=Math.max(10,Math.min(y,cv.scrollHeight-10));
+  if(wDrag.ep){
+    const N=box(wDrag.ep===1?w.a:w.b); if(!N) return;
+    const off={dx:cx-N.x, dy:cy-N.y};
+    if(wDrag.ep===1) w.a1=off; else w.a2=off;
+    wiresDraw(); return;
+  }
+  w.pts=w.pts||[];
+  if(wDrag.k===null){
+    if(Math.hypot(x-wDrag.ox,y-wDrag.oy)<3) return;   // click simplu = doar selectie
+    w.pts.splice(wDrag.idx,0,{dx:Math.max(10,Math.min(wDrag.ox,cv.clientWidth-10))-an.p1.x, dy:Math.max(10,Math.min(wDrag.oy,cv.scrollHeight-10))-an.p1.y});
+    wDrag.k=wDrag.idx;
+  }
+  w.pts[wDrag.k]={dx:cx-an.p1.x, dy:cy-an.p1.y};
+  wiresDraw();
+}
+
+/* ==================== DRAG vs CLICK ==================== */
+let dragId=null,ox=0,oy=0,sx=0,sy=0,didMove=false;
+cv.addEventListener('mousedown',e=>{
+  const n=e.target.closest('.node');
+  if(!n){ if(selWire!==null && !wDrag){ selWire=null; wiresDraw(); hint(); } return; }
+  dragId=+n.dataset.id; didMove=false;
+  const r=cv.getBoundingClientRect();
+  ox=e.clientX-r.left-pos[dragId].x; oy=e.clientY-r.top-pos[dragId].y;
+  sx=e.clientX; sy=e.clientY; e.preventDefault();
+});
+window.addEventListener('mousemove',e=>{
+  if(wDrag){ wireMove(e); return; }
+  if(dragId===null||drawing)return;
+  if(!didMove&&Math.abs(e.clientX-sx)<4&&Math.abs(e.clientY-sy)<4)return;
+  didMove=true; moved[dragId]=1;
+  const el=cv.querySelector(`.node[data-id="${dragId}"]`); if(el)el.classList.add('drag');
+  const r=cv.getBoundingClientRect();
+  pos[dragId]={x:Math.max(0,e.clientX-r.left-ox),y:Math.max(0,e.clientY-r.top-oy)};
+  if(el){el.style.left=pos[dragId].x+'px';el.style.top=pos[dragId].y+'px';}
+  wiresDraw();
+});
+window.addEventListener('mouseup',()=>{
+  if(wDrag){ wDrag=null; touch(); return; }
+  if(dragId===null)return;
+  const id=dragId,el=cv.querySelector(`.node[data-id="${id}"]`); if(el)el.classList.remove('drag');
+  dragId=null;
+  if(didMove){renumber();render();touch();return;}
+  if(drawing){
+    if(src===null){src=id;render();hint();}
+    else if(src===id){src=null;render();hint();}
+    else{WIRES.push({a:src,b:id,c:wireColor});src=null;render();hint();touch();}
+  } else openNode(id);
+});
+
+/* ==================== DRAWER ==================== */
+const FLD=[['t','Titlu','text'],['k','Tip','sel'],['b','Ramură','sel'],['piesa','Piesă din hartă (1-5, gol dacă nu)','text'],
+  ['d','Explicații / desfășurare','area'],['mat','Materiale necesare','area'],
+  ['dur','Durată estimată','text'],['loc','Locație','text'],['resp','Responsabil','text']];
+
+function openNode(id){
+  const s=STEPS.find(x=>x.id===id); if(!s)return;
+  sel=id; adding=false;
+  $('#dTitle').textContent=s.t;
+  $('#dBody').className='db view';
+  $('#dBody').innerHTML=`
+    <div class="swatch">
+      <div class="sw-${s.b} sel">${BRANCH[s.b]}</div>
+    </div>
+    <div class="f"><label>Tip</label><div class="v">${KINDS[s.k]}${s.todo?' · <b style="color:#3ddc97">de decis</b>':''}</div></div>
+    ${s.piesa?`<div class="f"><label>Piesă din hartă</label><div class="v"><span class="piece">${s.piesa}</span></div></div>`:''}
+    ${[['d','Explicații / desfășurare'],['mat','Materiale necesare'],['dur','Durată estimată'],['loc','Locație'],['resp','Responsabil']]
+      .map(([k,l])=>`<div class="f"><label>${l}</label><div class="v ${s[k]?'':'e'}">${s[k]?esc(s[k]):'— de completat —'}</div></div>`).join('')}`;
+  $('#dFoot').innerHTML=`<button class="gold" id="dEdit">✎ Editează</button><button class="dgr" id="dDel" style="margin-left:auto">Șterge căsuța</button>`;
+  $('#dEdit').onclick=()=>editNode(id);
+  $('#dDel').onclick=()=>{ if(!confirm('Ștergi căsuța „'+s.t+'"?'))return;
+    STEPS=STEPS.filter(x=>x.id!==id); WIRES=WIRES.filter(w=>w.a!==id&&w.b!==id); closeD(); render(); touch(); };
+  openD();
+}
+function editNode(id){
+  const s=STEPS.find(x=>x.id===id)||{};
+  $('#dTitle').textContent = adding ? 'Căsuță nouă' : 'Editezi: '+s.t;
+  $('#dBody').className='db';
+  $('#dBody').innerHTML=FLD.map(([k,l,ty])=>{
+    if(ty==='sel'){
+      const src2 = k==='k'?KINDS:BRANCH;
+      return `<div class="f"><label>${l}</label><select data-k="${k}">${
+        Object.entries(src2).map(([v,n])=>`<option value="${v}" ${s[k]===v?'selected':''}>${n}</option>`).join('')}</select></div>`;
+    }
+    if(ty==='area') return `<div class="f"><label>${l}</label><textarea data-k="${k}">${esc(s[k]||'')}</textarea></div>`;
+    return `<div class="f"><label>${l}</label><input data-k="${k}" value="${esc(s[k]||'')}"></div>`;
+  }).join('')+`<div class="f"><label>Stare</label><label style="text-transform:none;letter-spacing:0;color:var(--txt);font-size:13.5px">
+    <input type="checkbox" data-k="todo" ${s.todo?'checked':''} style="width:auto;margin-right:8px">Marchează „de decis"</label></div>`;
+  $('#dFoot').innerHTML=`<button class="gold" id="dSave">Salvează</button><button id="dCancel">Renunță</button>`;
+  $('#dSave').onclick=()=>{
+    const o = adding ? {id:Math.max(0,...STEPS.map(x=>x.id))+1, nr:STEPS.length+1} : s;
+    $('#dBody').querySelectorAll('[data-k]').forEach(el=>{
+      o[el.dataset.k] = el.type==='checkbox' ? (el.checked?1:0) : el.value;
+    });
+    o.piesa = o.piesa===''?undefined:o.piesa;
+    if(adding){ const y=height()-160; pos[o.id]={x:laneX(o),y}; STEPS.push(o); renumber(); }
+    adding=false; render(); touch(); openNode(o.id);
+  };
+  $('#dCancel').onclick=()=>{ if(adding){adding=false;closeD();} else openNode(id); };
+  openD();
+}
+function openD(){$('#drawer').classList.add('open');$('#scrim').classList.add('open');}
+function closeD(){sel=null;adding=false;$('#drawer').classList.remove('open');$('#scrim').classList.remove('open');render();}
+
+/* ==================== CONTROALE ==================== */
+function hint(){
+  $('#wseg').style.display = drawing ? '' : 'none';
+  $('#hint').innerHTML = drawing
+    ? (src===null?'Alege culoarea, apoi click pe căsuța <b>de plecare</b>…':'Acum click pe căsuța <b>de sosire</b>.')
+    : selWire!==null
+      ? 'Linie selectată: pătratele <b style=\"color:#3ddc97\">verzi</b> sunt capetele — trage-le unde vrei, inclusiv vârful săgeții. Trage de linie ca s-o îndoi. Dublu-click pe o bulină galbenă o șterge. <b>↺</b> readuce forma automată, <b>×</b> șterge linia.'
+      : 'Trage căsuțele ca să le rearanjezi. <b>Click</b> pe o căsuță deschide explicațiile. <b>Click pe o linie</b> ca s-o remodelezi.';
+}
+$('#bDraw').onclick=function(){drawing=!drawing;src=null;this.classList.toggle('on',drawing);
+  this.textContent=drawing?'✓ Gata cu liniile':'✎ Trage linie';render();hint();};
+$('#wseg').onclick=e=>{const b=e.target.closest('button');if(!b)return;wireColor=b.dataset.c;
+  document.querySelectorAll('#wseg button').forEach(x=>x.classList.toggle('on',x===b));};
+$('#bAdd').onclick=()=>{adding=true;editNode(null);};
+
+$('#bExport').onclick=()=>{
+  const blob=new Blob([JSON.stringify({STEPS,WIRES,pos},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='the-race-26.json';a.click();URL.revokeObjectURL(a.href);};
+$('#bImport').onclick=()=>$('#fIn').click();
+$('#fIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const j=JSON.parse(r.result);if(j.STEPS)STEPS=j.STEPS;if(j.WIRES)WIRES=j.WIRES;if(j.pos)pos=j.pos;render();}
+  catch(x){alert('Fișier JSON invalid.');}};r.readAsText(f);e.target.value='';};
+$('#dClose').onclick=closeD;$('#scrim').onclick=closeD;
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ closeD(); if(selWire!==null){selWire=null;wiresDraw();hint();} }
+  if((e.key==='Delete'||e.key==='Backspace')&&selWire!==null&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){
+    e.preventDefault(); WIRES.splice(selWire,1); selWire=null; wiresDraw(); hint();
+  }
+});
+
+/* ==================== PERSISTENȚĂ (înlocuită la build) ==================== */
+function persist(){}
+let _pt=null;
+function touch(){ clearTimeout(_pt); _pt=setTimeout(()=>{ try{persist();}catch(e){} }, 400); }
+
+/* ==================== BRAINSTORMING ==================== */
+let IDEAS=[];
+function ideaId(){ return IDEAS.reduce((m,i)=>Math.max(m,i.id||0),0)+1; }
+function renderBrain(){
+  const tb=document.getElementById('brainBody'); if(!tb) return;
+  const opts=STEPS.map(st=>`<option value="${st.id}">${st.nr}. ${esc(st.t)}</option>`).join('');
+  tb.innerHTML=IDEAS.map((it,ix)=>`<tr data-iid="${it.id}">
+    <td class="cnr">${ix+1}</td>
+    <td><input class="cellname" data-it="${it.id}" value="${esc(it.t||'')}" placeholder="Titlul ideii"></td>
+    <td><textarea class="cellinput" data-id2="${it.id}" placeholder="Descrie ideea…">${esc(it.d||'')}</textarea></td>
+    <td><select class="cellinput" style="min-height:0;padding:8px" data-ia="${it.id}">
+      <option value="">— nehotărât —</option>${opts}</select></td>
+    <td class="cbtn"><button class="mini dgr" data-ix="${it.id}">×</button></td>
+  </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:#5c6791;padding:26px">Nicio idee încă. Apasă „+ Idee".</td></tr>';
+  IDEAS.forEach(it=>{ const sel=tb.querySelector(`[data-ia="${it.id}"]`); if(sel) sel.value=it.a||''; });
+  document.getElementById('brainCount').textContent=IDEAS.length+' idei';
+  tb.querySelectorAll('[data-it]').forEach(el=>el.oninput=()=>{ const it=IDEAS.find(x=>x.id==el.dataset.it); if(it){it.t=el.value;touch();} });
+  tb.querySelectorAll('[data-id2]').forEach(el=>el.oninput=()=>{ const it=IDEAS.find(x=>x.id==el.dataset.id2); if(it){it.d=el.value;touch();} });
+  tb.querySelectorAll('[data-ia]').forEach(el=>el.onchange=()=>{ const it=IDEAS.find(x=>x.id==el.dataset.ia); if(it){it.a=el.value?+el.value:null;touch();} });
+  tb.querySelectorAll('[data-ix]').forEach(el=>el.onclick=()=>{
+    if(!confirm('Ștergi această idee?')) return;
+    IDEAS=IDEAS.filter(x=>x.id!=el.dataset.ix); touch(); renderBrain();
+  });
+}
+document.addEventListener('click',e=>{
+  if(e.target && e.target.id==='bAddIdea'){ IDEAS.push({id:ideaId(),t:'',d:'',a:null}); touch(); renderBrain();
+    const inp=document.querySelector('#brainBody tr:last-child [data-it]'); if(inp) inp.focus(); }
+});
+
+/* ==================== TABURI ==================== */
+let view='map';
+function setView(v){
+  view=v;
+  document.querySelectorAll('.vt').forEach(t=>t.classList.toggle('on',t.dataset.v===v));
+  document.querySelector('.stage').style.display = v==='map'?'':'none';
+  document.querySelector('.bar').style.display   = v==='map'?'':'none';
+  document.getElementById('legendBox').style.display = v==='map'?'':'none';
+  document.getElementById('stageList').style.display = v==='list'?'':'none';
+  const sb=document.getElementById('stageBrain'); if(sb) sb.style.display = v==='brain'?'':'none';
+  document.getElementById('mapacts').style.display = v==='map'?'':'none';
+  if(v==='list') renderList(); else if(v==='brain') renderBrain(); else render();
+}
+document.querySelectorAll('.vt').forEach(t=>t.onclick=()=>setView(t.dataset.v));
+
+/* ==================== LISTA ACTIVITĂȚILOR ==================== */
+const BCOL={clasic:'#ffffff',albastru:'#2f6ae0',rosu:'#d62828'};
+function renderList(){
+  const tb=document.getElementById('tbody');
+  tb.innerHTML=STEPS.map(s=>{
+    const has=s.story&&s.story.trim();
+    return `<tr data-id="${s.id}">
+      <td class="cnr">${s.nr??''}</td>
+      <td class="cact">
+        <input class="cellname actname ${s.b==='rosu'?'b-rosu':'k-'+s.k}" data-name="${s.id}" value="${esc(s.t)}">${s.piesa?`<span class="piece">${s.piesa}</span>`:''}
+        <div class="actmeta"><span class="bdot" style="background:${BCOL[s.b]}"></span>${KINDS[s.k]} · ${BRANCH[s.b]}${s.todo?' · de decis':''}</div>
+      </td>
+      <td class="cres"><textarea class="cellinput" data-res="${s.id}" placeholder="ex: 3 corzi, 2 țăruși, plicuri…">${esc(s.mat||'')}</textarea></td>
+      <td class="csto">
+        ${has?`${s.storyHead?`<div class="stohead">${esc(s.storyHead)}</div>`:''}<div class="stoprev">${esc(s.story)}</div>
+              <button class="mini" data-story="${s.id}">✎ Editează</button>
+              <button class="mini" data-print="${s.id}">⎙ Printează</button>`
+            :`<button class="mini gold" data-story="${s.id}">+ Add story</button>`}
+      </td>
+      <td class="cbtn"><button class="mini" data-open="${s.id}">Detalii</button></td>
+    </tr>`;
+  }).join('');
+  const n=STEPS.filter(s=>s.story&&s.story.trim()).length;
+  document.getElementById('listCount').textContent=`${STEPS.length} activități · ${n} story-uri scrise`;
+
+  tb.querySelectorAll('[data-name]').forEach(t=>{
+    t.oninput=()=>{ const s=STEPS.find(x=>x.id==t.dataset.name); if(s){ s.t=t.value; touch(); } };
+    t.onblur=()=>{ if(view==='map') render(); };
+  });
+  tb.querySelectorAll('[data-res]').forEach(t=>t.oninput=()=>{
+    const s=STEPS.find(x=>x.id==t.dataset.res); if(s){ s.mat=t.value; touch(); }
+  });
+  tb.querySelectorAll('[data-story]').forEach(b=>b.onclick=()=>openStory(+b.dataset.story));
+  tb.querySelectorAll('[data-print]').forEach(b=>b.onclick=()=>printStories([+b.dataset.print]));
+  tb.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{ setView('map'); openNode(+b.dataset.open); });
+}
+document.getElementById('bAdd2').onclick=()=>{ setView('map'); adding=true; editNode(null); };
+
+/* ==================== STORY ==================== */
+let storyId=null;
+function openStory(id){
+  const s=STEPS.find(x=>x.id===id); if(!s) return;
+  storyId=id;
+  document.getElementById('smTitle').textContent='Story — '+s.t;
+  document.getElementById('smHead').value = s.storyHead || defaultHead(s);
+  document.getElementById('smText').value = s.story || '';
+  document.getElementById('smDel').style.display = (s.story&&s.story.trim())?'':'none';
+  document.getElementById('storyModal').classList.add('open');
+  setTimeout(()=>document.getElementById('smText').focus(),60);
+}
+function defaultHead(s){
+  const t=s.t.toUpperCase();
+  return t.length>40 ? KINDS[s.k].toUpperCase() : t;
+}
+function closeStory(){ document.getElementById('storyModal').classList.remove('open'); storyId=null; }
+document.getElementById('smClose').onclick=closeStory;
+document.getElementById('storyModal').onclick=e=>{ if(e.target.id==='storyModal') closeStory(); };
+document.getElementById('smSave').onclick=()=>{
+  const s=STEPS.find(x=>x.id===storyId); if(!s) return;
+  s.storyHead=document.getElementById('smHead').value.trim();
+  s.story=document.getElementById('smText').value;
+  touch(); closeStory(); renderList();
+};
+document.getElementById('smDel').onclick=()=>{
+  const s=STEPS.find(x=>x.id===storyId); if(!s) return;
+  if(!confirm('Ștergi story-ul acestei activități?')) return;
+  delete s.story; delete s.storyHead; touch(); closeStory(); renderList();
+};
+document.getElementById('smPrint').onclick=()=>{
+  const s=STEPS.find(x=>x.id===storyId); if(!s) return;
+  s.storyHead=document.getElementById('smHead').value.trim();
+  s.story=document.getElementById('smText').value;
+  touch(); renderList(); printStories([s.id]);
+};
+
+/* ==================== PRINT PLICURI ==================== */
+function printStories(ids){
+  const list=STEPS.filter(s=>ids.includes(s.id) && s.story && s.story.trim());
+  if(!list.length){ alert('Nu e scris niciun story pentru asta.'); return; }
+  document.getElementById('printarea').innerHTML=list.map(s=>`
+    <div class="psheet"><div class="pframe">
+      <div class="pkicker">The Race &rsquo;26 &middot; BBSO</div>
+      <div class="phead">${esc(s.storyHead||defaultHead(s))}</div>
+      <div class="prule"></div>
+      <div class="ptext">${esc(s.story)}</div>
+      <div class="pfoot">activitatea ${s.nr??''}</div>
+    </div></div>`).join('');
+  window.print();
+}
+document.getElementById('bPrintAll').onclick=()=>{
+  const ids=STEPS.filter(s=>s.story&&s.story.trim()).map(s=>s.id);
+  if(!ids.length){ alert('Nu ai scris încă niciun story.'); return; }
+  printStories(ids);
+};
+
+document.getElementById('bSave').onclick=()=>{ clearTimeout(_pt); try{persist();}catch(e){} };
+window.addEventListener('beforeunload',()=>{ clearTimeout(_pt); try{persist();}catch(e){} });
+
+/* ============ login, criptare, sincronizare live ============ */
+const DB=(typeof window!=='undefined'&&window.RACE_DB)||'https://the-race-26-default-rtdb.europe-west1.firebasedatabase.app';
+const ROOT='/race26';
+const LSKEY='race26data';
+
+const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const b64e=b=>{let s='';const u=new Uint8Array(b);for(let i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return btoa(s);};
+
+let AESKEY=null, ME='', CID=Math.random().toString(36).slice(2,10);
+let lastSent={}, presence={}, ONLINE=false, esrc=null, seeded=false;
+
+/* ---------- criptare ---------- */
+async function deriveKey(user,pass){
+  const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(user+':'+pass),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(ENC.s),iterations:250000,hash:'SHA-256'},
+    base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function unlock(user,pass){
+  const key=await deriveKey(user,pass);
+  const out=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(ENC.i)},key,b64(ENC.c));
+  AESKEY=key;
+  return JSON.parse(new TextDecoder().decode(out));
+}
+async function encv(obj){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},AESKEY,new TextEncoder().encode(JSON.stringify(obj)));
+  return {i:b64e(iv), c:b64e(ct)};
+}
+async function decv(o){
+  if(!o||!o.i||!o.c) return null;
+  const out=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(o.i)},AESKEY,b64(o.c));
+  return JSON.parse(new TextDecoder().decode(out));
+}
+
+/* ---------- retea ---------- */
+function fetchT(url,opts,ms){
+  const ctl=new AbortController();
+  const t=setTimeout(()=>ctl.abort(),ms||12000);
+  return fetch(url,Object.assign({},opts,{signal:ctl.signal})).finally(()=>clearTimeout(t));
+}
+function put(path,val){
+  return fetchT(DB+ROOT+path+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(val)}).then(r=>{ if(!r.ok) throw new Error('PUT '+r.status); return r; });
+}
+function hhmm(t){const d=new Date(t);return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+function flag(msg,col){
+  const el=document.getElementById('saveflag'); if(!el) return;
+  el.textContent=msg; el.style.color=col||'#3ddc97'; el.style.opacity=1;
+}
+function markSaved(){ dirtySince=0; flag('salvat '+hhmm(Date.now())); }
+let dirtySince=0, pushStart=0;
+function markDirty(){ if(!dirtySince) dirtySince=Date.now(); flag('nesalvat…','#f5c451'); }
+function localSave(){
+  if(!AESKEY) return;
+  encv({STEPS,WIRES,pos,IDEAS}).then(e=>{ try{ localStorage.setItem(LSKEY,JSON.stringify(e)); }catch(_){}} ).catch(()=>{});
+}
+
+/* ---------- trimite modificarile ---------- */
+let pushing=false, pushAgain=false;
+async function syncPush(){
+  if(!AESKEY) return;
+  markDirty();
+  localSave();
+  if(!ONLINE){ await reconnect(); if(!ONLINE){ flag('OFFLINE - doar local','#ffb4b4'); return; } }
+  if(pushing){ pushAgain=true; return; }
+  pushing=true; pushStart=Date.now();
+  try{
+    const jobs=[], ids=new Set();
+    STEPS.forEach((s,i)=>{
+      ids.add(s.id);
+      const rec=Object.assign({},s,{o:i});
+      const j=JSON.stringify(rec);
+      if(lastSent['s'+s.id]!==j){ lastSent['s'+s.id]=j; jobs.push(encv(rec).then(e=>put('/steps/'+s.id,e))); }
+    });
+    Object.keys(lastSent).forEach(k=>{
+      if(k[0]==='s' && k!=='s_' && !ids.has(+k.slice(1))){ delete lastSent[k]; jobs.push(put('/steps/'+k.slice(1),null)); }
+    });
+    const jw=JSON.stringify(WIRES);
+    if(lastSent.__w!==jw){ lastSent.__w=jw; jobs.push(encv(WIRES).then(e=>put('/wires',e))); }
+    const jp=JSON.stringify(pos);
+    if(lastSent.__p!==jp){ lastSent.__p=jp; jobs.push(encv(pos).then(e=>put('/pos',e))); }
+    const ji=JSON.stringify(IDEAS);
+    if(lastSent.__i!==ji){ lastSent.__i=ji; jobs.push(encv(IDEAS).then(e=>put('/ideas',e))); }
+    if(jobs.length){ await Promise.all(jobs); snapshot(); }
+    markSaved();
+  }catch(e){ ONLINE=false; flag('OFFLINE - doar local, reincerc…','#ffb4b4'); scheduleReconnect(); }
+  pushing=false;
+  if(pushAgain){ pushAgain=false; syncPush(); }
+}
+persist=syncPush;
+
+/* ---------- reconectare automata ---------- */
+let reconT=null;
+async function reconnect(){
+  try{
+    const r=await fetchT(DB+ROOT+'.json?shallow=true',{cache:'no-store'},8000);
+    if(r.ok){ ONLINE=true; listen(); beat(currentStep()); return true; }
+  }catch(_){}
+  ONLINE=false; return false;
+}
+function scheduleReconnect(){
+  clearTimeout(reconT);
+  reconT=setTimeout(async()=>{
+    if(await reconnect()){ flag('din nou online','#3ddc97'); syncPush(); }
+    else scheduleReconnect();
+  },8000);
+}
+window.addEventListener('online',()=>scheduleReconnect());
+
+/* ---------- copii de siguranta ---------- */
+let lastSnap=0;
+async function snapshot(force){
+  if(!ONLINE||!AESKEY) return;
+  const now=Date.now();
+  if(!force && now-lastSnap<180000) return;
+  lastSnap=now;
+  try{
+    await put('/backups/'+now, await encv({STEPS,WIRES,pos,IDEAS}));
+    const r=await fetch(DB+ROOT+'/backups.json?shallow=true',{cache:'no-store'});
+    const k=await r.json();
+    const keys=Object.keys(k||{}).map(Number).sort((a,b)=>a-b);
+    while(keys.length>20){ const old=keys.shift(); put('/backups/'+old,null).catch(()=>{}); }
+  }catch(_){}
+}
+async function openVersions(){
+  const box=document.createElement('div');
+  box.className='modal open'; box.id='verModal';
+  box.innerHTML='<div class="mcard" style="width:min(460px,100%)">'+
+    '<div class="mh"><h3>Copii de siguranță</h3><button class="close" id="vClose">×</button></div>'+
+    '<div class="mb" id="vBody">Se încarcă…</div>'+
+    '<div class="mf"><button class="gold" id="vNow">Fă o copie acum</button></div></div>';
+  document.body.appendChild(box);
+  const close=()=>box.remove();
+  box.onclick=e=>{ if(e.target===box) close(); };
+  box.querySelector('#vClose').onclick=close;
+  box.querySelector('#vNow').onclick=async()=>{ await snapshot(true); close(); openVersions(); };
+  try{
+    const r=await fetch(DB+ROOT+'/backups.json?shallow=true',{cache:'no-store'});
+    const k=await r.json();
+    const keys=Object.keys(k||{}).map(Number).sort((a,b)=>b-a);
+    const body=box.querySelector('#vBody');
+    if(!keys.length){ body.textContent='Încă nu există copii.'; return; }
+    body.innerHTML=keys.map(t=>{
+      const d=new Date(t);
+      return '<div class="f" style="display:flex;gap:10px;align-items:center;margin-bottom:9px">'+
+        '<span style="flex:1;font-size:13.5px">'+d.toLocaleDateString('ro-RO')+' &nbsp; '+hhmm(t)+'</span>'+
+        '<button class="mini" data-restore="'+t+'">Restaurează</button></div>';
+    }).join('');
+    body.querySelectorAll('[data-restore]').forEach(b=>b.onclick=async()=>{
+      if(!confirm('Înlocuiești harta actuală cu versiunea din '+hhmm(+b.dataset.restore)+'? Toți vor vedea această versiune.')) return;
+      const rr=await fetch(DB+ROOT+'/backups/'+b.dataset.restore+'.json',{cache:'no-store'});
+      const snap=await decv(await rr.json());
+      if(!snap) return alert('Copia nu a putut fi citită.');
+      STEPS=snap.STEPS; WIRES=snap.WIRES; if(snap.pos) pos=snap.pos; if(snap.IDEAS) IDEAS=snap.IDEAS;
+      lastSent={}; renumber(); render(); if(view==='list') renderList();
+      await syncPush(); close();
+    });
+  }catch(e){ box.querySelector('#vBody').textContent='Nu am putut citi copiile.'; }
+}
+
+/* ---------- primeste modificarile ---------- */
+function busyWith(id){
+  if(typeof storyId!=='undefined' && storyId===id) return true;
+  if(typeof sel!=='undefined' && sel===id && document.getElementById('drawer').classList.contains('open')) return true;
+  const a=document.activeElement;
+  if(a && (a.dataset) && (a.dataset.res==id || a.dataset.name==id)) return true;
+  return false;
+}
+async function applyStep(id,val){
+  if(val===null||val===undefined){
+    if(!busyWith(id)){ STEPS=STEPS.filter(s=>s.id!==id); delete lastSent['s'+id]; return true; }
+    return false;
+  }
+  const rec=await decv(val); if(!rec) return false;
+  const j=JSON.stringify(rec);
+  if(lastSent['s'+id]===j) return false;      // e chiar ce am scris eu
+  if(busyWith(id)) return false;              // nu suprascriu peste ce scriu chiar acum
+  lastSent['s'+id]=j;
+  const o=rec.o; delete rec.o;
+  const k=STEPS.findIndex(s=>s.id===id);
+  if(k<0) STEPS.splice(Math.min(o??STEPS.length,STEPS.length),0,rec); else STEPS[k]=rec;
+  return true;
+}
+async function applyTree(d){
+  let ch=false;
+  if(d && d.steps){
+    const ids=Object.keys(d.steps).map(Number);
+    const recs=[];
+    for(const id of ids){ const r=await decv(d.steps[id]); if(r) recs.push(r); }
+    if(recs.length){
+      recs.sort((a,b)=>(a.o??0)-(b.o??0));
+      recs.forEach(r=>{ lastSent['s'+r.id]=JSON.stringify(r); delete r.o; });
+      STEPS=recs; ch=true;
+    }
+  }
+  if(d && d.wires){ const w=await decv(d.wires); if(w){ WIRES=w; lastSent.__w=JSON.stringify(w); ch=true; } }
+  if(d && d.pos){ const p=await decv(d.pos); if(p){ pos=p; lastSent.__p=JSON.stringify(p); ch=true; } }
+  if(d && d.ideas){ const i2=await decv(d.ideas); if(i2){ IDEAS=i2; lastSent.__i=JSON.stringify(i2); ch=true; } }
+  if(d && d.presence) presence=d.presence;
+  return ch;
+}
+let redrawT=null;
+function redrawSoon(){
+  clearTimeout(redrawT);
+  redrawT=setTimeout(()=>{ renumber(); render(); if(view==='list') renderList(); if(view==='brain') renderBrain(); },120);
+}
+let evQ=Promise.resolve();
+function onEvent(ev,isPatch){
+  evQ=evQ.then(async()=>{
+    let d; try{ d=JSON.parse(ev.data); }catch(_){ return; }
+    const path=d.path, data=d.data;
+    if(path==='/'){ if(await applyTree(data)) redrawSoon(); updatePresence(); return; }
+    if(path.indexOf('/presence')===0){
+      if(path==='/presence') presence=data||{};
+      else { const cid=path.split('/')[2]; if(data===null) delete presence[cid]; else presence[cid]=data; }
+      updatePresence(); return;
+    }
+    if(path==='/steps'){
+      let ch=false;
+      for(const id of Object.keys(data||{})) if(await applyStep(+id,data[id])) ch=true;
+      if(ch) redrawSoon(); return;
+    }
+    if(path.indexOf('/steps/')===0){
+      const id=+path.split('/')[2];
+      if(await applyStep(id,data)) redrawSoon(); return;
+    }
+    if(path==='/wires'){ const w=await decv(data); if(w && JSON.stringify(w)!==lastSent.__w){ WIRES=w; lastSent.__w=JSON.stringify(w); redrawSoon(); } return; }
+    if(path==='/pos'){ const p=await decv(data); if(p && JSON.stringify(p)!==lastSent.__p){ pos=p; lastSent.__p=JSON.stringify(p); redrawSoon(); } return; }
+    if(path==='/ideas'){
+      const i2=await decv(data);
+      if(!i2 || JSON.stringify(i2)===lastSent.__i) return;
+      const a=document.activeElement;
+      const tr=a && a.closest ? a.closest('#brainBody tr[data-iid]') : null;
+      if(tr){
+        // pastrez doar ideea pe care o scriu chiar acum; restul vin de la remote
+        const eid=+tr.dataset.iid;
+        const mine=IDEAS.find(x=>x.id===eid);
+        IDEAS=i2.filter(x=>x.id!==eid);
+        if(mine){ const ix=i2.findIndex(x=>x.id===eid); IDEAS.splice(ix<0?IDEAS.length:ix,0,mine); }
+        lastSent.__i=''; markDirty();
+      } else {
+        IDEAS=i2; lastSent.__i=JSON.stringify(i2);
+        if(view==='brain') renderBrain();
+      }
+      return; }
+  }).catch(()=>{});
+}
+function listen(){
+  try{ if(esrc) esrc.close(); }catch(_){}
+  esrc=new EventSource(DB+ROOT+'.json');
+  esrc.addEventListener('put',e=>onEvent(e,false));
+  esrc.addEventListener('patch',e=>onEvent(e,true));
+  esrc.onerror=()=>{ /* EventSource se reconecteaza singur */ };
+}
+
+/* ---------- cine e online / cine editeaza ---------- */
+function beat(step){
+  if(!ONLINE) return;
+  put('/presence/'+CID,{n:ME||'cineva', s:(step===undefined?null:step), t:Date.now()}).catch(()=>{});
+}
+function others(){
+  const now=Date.now(), o={};
+  Object.keys(presence).forEach(k=>{
+    const v=presence[k];
+    if(k!==CID && v && v.t && now-v.t<90000) o[k]=v;
+  });
+  return o;
+}
+function updatePresence(){
+  const o=others(), n=Object.keys(o).length;
+  const el=document.getElementById('whoflag');
+  if(el){
+    const names=Object.keys(o).map(k=>o[k].n).filter(Boolean);
+    el.textContent = n? ('● '+n+' online: '+names.join(', ')) : '● doar tu';
+    el.style.color = n? '#3ddc97' : '#5f6c9c';
+  }
+  document.querySelectorAll('.busy').forEach(e=>e.remove());
+  Object.keys(o).forEach(k=>{
+    const v=o[k]; if(!v.s) return;
+    const nd=document.querySelector('.node[data-id="'+v.s+'"]');
+    if(nd){ const t=document.createElement('div'); t.className='busy'; t.textContent='✎ '+(v.n||'cineva'); nd.appendChild(t); }
+    const row=document.querySelector('#tbody tr[data-id="'+v.s+'"] .cact');
+    if(row){ const t=document.createElement('span'); t.className='busy inline'; t.textContent='✎ '+(v.n||'cineva'); row.appendChild(t); }
+  });
+}
+
+/* ---------- pornire ---------- */
+async function boot(baked){
+  let usedRemote=false;
+  try{
+    const r=await fetchT(DB+ROOT+'.json',{cache:'no-store'},12000);
+    if(r.ok){
+      ONLINE=true;
+      const d=await r.json();
+      if(d && d.steps){
+        usedRemote=await applyTree(d);
+        if(!usedRemote){
+          // Baza contine date pe care nu le pot descifra. NU le suprascriu.
+          document.getElementById('gerr').innerHTML=
+            'Baza de date contine date scrise cu alta parola sau alta versiune.<br>'+
+            'Nu le suprascriu. Anunta administratorul.';
+          document.getElementById('gb').disabled=false;
+          document.getElementById('gb').textContent='Intra';
+          throw new Error('DB_UNREADABLE');
+        }
+      }
+    }
+  }catch(e){ ONLINE=false; }
+
+  if(!usedRemote){
+    let local=null;
+    try{ const raw=localStorage.getItem(LSKEY); if(raw) local=await decv(JSON.parse(raw)); }catch(_){}
+    const d=local||baked;
+    STEPS=d.STEPS; WIRES=d.WIRES;
+    if(d.IDEAS) IDEAS=d.IDEAS;
+    if(d.pos) pos=d.pos; else tidy();
+  }
+  document.getElementById('gate').classList.add('hidden');
+  renumber(); render(); hint();
+
+  if(ONLINE){
+    if(!usedRemote){ seeded=true; await syncPush(); flag('am pornit baza comuna'); }
+    listen(); beat(); setInterval(()=>beat(currentStep()),25000); updatePresence();
+    setInterval(()=>{
+      if(pushing && Date.now()-pushStart>25000){ pushing=false; }
+      if(dirtySince && !pushing && Date.now()-dirtySince>10000) syncPush();
+    },5000);
+    setTimeout(()=>snapshot(true),4000); setInterval(()=>snapshot(),180000);
+    markSaved();
+  } else {
+    flag('OFFLINE - doar local, reincerc…','#ffb4b4');
+    scheduleReconnect();
+  }
+}
+function currentStep(){
+  if(typeof storyId!=='undefined' && storyId!==null) return storyId;
+  if(typeof sel!=='undefined' && sel!==null && document.getElementById('drawer').classList.contains('open')) return sel;
+  return null;
+}
+window.addEventListener('beforeunload',()=>{
+  try{ navigator.sendBeacon && navigator.sendBeacon(DB+ROOT+'/presence/'+CID+'.json?x-http-method-override=DELETE','null'); }catch(_){}
+  try{ fetch(DB+ROOT+'/presence/'+CID+'.json',{method:'DELETE',keepalive:true}); }catch(_){}
+});
+
+document.addEventListener('DOMContentLoaded',()=>{});
+(function(){
+  const b=document.createElement('button');
+  b.id='bVer'; b.textContent='⏱ Versiuni';
+  b.onclick=openVersions;
+  const ex=document.getElementById('bExport');
+  if(ex&&ex.parentNode) ex.parentNode.insertBefore(b,ex);
+})();
+
+/* ---------- formularul de login ---------- */
+document.getElementById('gform').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const b=document.getElementById('gb'), err=document.getElementById('gerr');
+  b.disabled=true; b.textContent='Se descuie…'; err.textContent='';
+  try{
+    const u=document.getElementById('gu').value.trim();
+    const pw=document.getElementById('gp').value;
+    ME=(document.getElementById('gn').value||'').trim();
+    const data=await unlock(u,pw);
+    try{ sessionStorage.setItem('race26',JSON.stringify({u:u,p:pw,n:ME})); }catch(_){}
+    await boot(data);
+  }catch(x){ err.textContent='Utilizator sau parola gresita.'; b.disabled=false; b.textContent='Intra'; }
+});
+(async()=>{
+  try{
+    const s=JSON.parse(sessionStorage.getItem('race26')||'null'); if(!s) return;
+    ME=s.n||'';
+    await boot(await unlock(s.u,s.p));
+  }catch(_){}
+})();
+</script>
+</body>
+</html>
