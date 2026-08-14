@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Race '26 — hartă hibridă v2 | BBSO</title>
+<style>
+:root{
+  --bg:#0a0f1e; --bg2:#0e1529; --panel:#151f3d; --panel2:#1c2950;
+  --line:#2b3866; --txt:#e9edfa; --muted:#8d9ac6;
+  --gold:#f5c451; --blue:#2f6ae0; --red:#d62828; --green:#127c4a; --violet:#4c1d95;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+
+header{position:sticky;top:0;z-index:60;background:rgba(10,15,30,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line)}
+.hw{max-width:1500px;margin:0 auto;padding:11px 18px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.flag{width:36px;height:36px;border-radius:10px;
+  background:repeating-conic-gradient(#0a0f1e 0% 25%,#f5c451 0% 50%) 50%/11px 11px;box-shadow:0 0 0 1px var(--line)}
+.ttl{font-weight:800;letter-spacing:.12em;font-size:17px}.ttl span{color:var(--gold)}
+.sub{font-size:10.5px;color:var(--muted);letter-spacing:.16em;text-transform:uppercase;margin-top:2px}
+
+button{font:inherit;font-size:12.5px;font-weight:600;background:var(--panel);color:var(--txt);
+  border:1px solid var(--line);border-radius:9px;padding:8px 12px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+button:hover{background:var(--panel2)}
+button.on{background:var(--gold);border-color:var(--gold);color:#2a1e00}
+button.gold{background:linear-gradient(180deg,#f5c451,#e0a92c);color:#2a1e00;border-color:#c9971f}
+button.dgr{color:#ffb4b4;border-color:#5a2b2b}button.dgr:hover{background:#3a1c1c}
+.acts{display:flex;gap:7px;margin-left:auto;flex-wrap:wrap;align-items:center}
+.acts>*{flex:0 0 auto}
+.mapacts{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+#saveflag{font-size:11.5px;color:#3ddc97;opacity:0;transition:opacity .3s;white-space:nowrap}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{border:none;border-radius:0;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:none}
+.seg button.on.w-clasic{background:#fff;color:#111}
+.seg button.on.w-albastru{background:var(--blue);color:#fff}
+.seg button.on.w-rosu{background:var(--red);color:#fff}
+.seg button.on.w-negru{background:#0b0c10;color:#fff;box-shadow:inset 0 0 0 1px #6b7488}
+
+.bar{max-width:1500px;margin:0 auto;padding:10px 18px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.hint{font-size:12px;color:var(--muted);flex:1;min-width:220px}.hint b{color:var(--gold)}
+
+.stage{max-width:1500px;margin:0 auto;padding:6px 18px 60px}
+.cvwrap{overflow:auto;-webkit-overflow-scrolling:touch;border-radius:16px}
+.zoombar{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:10px}
+.zoombar button{min-width:40px;justify-content:center;font-size:15px;padding:8px 12px}
+.zoombar #zlabel{font-size:12px;color:var(--muted);min-width:44px;text-align:center}
+.node,svg.wires .hit,svg.wires .wp,svg.wires .ep,svg.wires .btn{touch-action:none}
+.canvas{position:relative;border:1px dashed rgba(43,56,102,.7);border-radius:16px;overflow:hidden;
+  background:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px) 0 0/100% 28px,
+             linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px) 0 0/28px 100%,var(--bg2);
+  min-height:600px;user-select:none}
+svg.wires{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+svg.wires path.hit{pointer-events:stroke;cursor:move}
+svg.wires .wp,svg.wires .ep{pointer-events:all;cursor:grab}
+svg.wires .wp:active,svg.wires .ep:active{cursor:grabbing}
+svg.wires .btn{pointer-events:all;cursor:pointer}
+svg.wires .btn:hover rect{filter:brightness(1.35)}
+.rail{position:absolute;left:0;top:0;bottom:0;width:60px;background:rgba(11,17,36,.55);border-right:1px solid var(--line);z-index:1}
+.lane{position:absolute;top:12px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;z-index:2}
+.rnum{position:absolute;left:0;width:60px;text-align:center;font-weight:800;font-size:13px;color:#5f6c9c;z-index:2}
+
+/* ---------- CĂSUȚE ---------- */
+.node{position:absolute;z-index:3;width:250px;border-radius:12px;padding:11px 13px;cursor:pointer;
+  box-shadow:0 8px 22px rgba(0,0,0,.4);transition:box-shadow .15s,transform .08s;border:1px solid transparent}
+.node:hover{box-shadow:0 14px 30px rgba(0,0,0,.55)}
+.node.moved{box-shadow:0 14px 34px rgba(0,0,0,.6)}
+.node.drag{z-index:30;transform:scale(1.02);cursor:grabbing}
+.node.src{outline:3px solid var(--gold);outline-offset:2px}
+
+.node.clasic  {background:#ffffff;color:#1c2233;border-color:#c9d0e4}
+.node.albastru{background:linear-gradient(180deg,#d6e6ff,#b9d3ff);color:#0a1020;border-color:#2f6ae0;border-left-color:#2f6ae0}
+.node.rosu    {background:linear-gradient(180deg,#e33a3a,#d62828);color:#fff;border-color:#a81c1c}
+.node.negru   {background:linear-gradient(180deg,#1b1e26,#08090c);color:#fff;border-color:#6b7488;
+  border-left-color:#c3cad9;box-shadow:0 8px 24px rgba(0,0,0,.7)}
+
+.nt{font-weight:800;font-size:14px;line-height:1.3}
+.nm{font-size:11.5px;line-height:1.5;margin-top:5px;opacity:.85;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.node.clasic .nm{color:#4a5268}
+.node.rosu .nm{color:rgba(255,255,255,.9)}
+.node.negru .nm{color:rgba(255,255,255,.78)}
+.node.albastru .nm{color:#2a3550}
+
+/* scris colorat pe tip, în căsuța albă */
+.node.clasic .nt.k-fizica  {color:#c81e1e}
+.node.clasic .nt.k-mind    {color:#127c4a}
+.node.clasic .nt.k-indiciu,
+.node.clasic .nt.k-search  {color:#4c1d95}
+.node.clasic .nt.k-desen   {color:#1e3a8a}
+.node.clasic .nt.k-proba   {color:#334155}
+.node.clasic .nt.k-logistic{color:#5b6478}
+.node.clasic .nt.k-decizie {color:#a16207}
+.node.rosu .nt{color:#fff}
+.node.negru .nt{color:#fff;letter-spacing:.02em}
+.node.albastru .nt{color:#000}
+
+.chip{display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;
+  padding:2.5px 7px;border-radius:5px;margin-top:7px;margin-right:4px}
+.node.clasic .chip{background:#eef1f8;color:#4a5268}
+.node.clasic .chip.k-fizica{background:#fdeaea;color:#c81e1e}
+.node.clasic .chip.k-mind{background:#e6f6ee;color:#127c4a}
+.node.clasic .chip.k-indiciu,.node.clasic .chip.k-search{background:#f0e9fb;color:#4c1d95}
+.node.clasic .chip.k-desen{background:#e8eefb;color:#1e3a8a}
+.node.clasic .chip.k-decizie{background:#fdf3d8;color:#8a5a06}
+.node.rosu .chip{background:rgba(255,255,255,.2);color:#fff}
+.node.negru .chip{background:rgba(255,255,255,.14);color:#dfe5f2;border:1px solid rgba(255,255,255,.28)}
+.node.albastru .chip{background:rgba(47,106,224,.16);color:#123a86}
+.piece{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:6px;
+  background:linear-gradient(180deg,#f5c451,#e0a92c);color:#2a1e00;font-weight:800;font-size:11.5px;
+  vertical-align:middle;margin-left:5px;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.todo{display:inline-block;font-size:9.5px;font-weight:800;padding:2.5px 7px;border-radius:5px;margin-top:7px;
+  background:rgba(61,220,151,.16);color:#0d7a4f;border:1px dashed rgba(18,124,74,.5)}
+.node.rosu .todo{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.5)}
+.node.negru .todo{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.45)}
+.node.albastru .todo{background:rgba(61,220,151,.2);color:#0d7a4f;border-color:rgba(18,124,74,.55)}
+
+/* ---------- DRAWER ---------- */
+.scrim{position:fixed;inset:0;background:rgba(4,7,16,.6);backdrop-filter:blur(3px);z-index:80;display:none}
+.scrim.open{display:block}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(460px,100%);z-index:90;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#141c36,#0c1326);border-left:1px solid var(--line);
+  box-shadow:-20px 0 60px rgba(0,0,0,.55);transform:translateX(102%);transition:transform .25s cubic-bezier(.2,.8,.3,1)}
+.drawer.open{transform:none}
+.dh{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+.dh h2{margin:0;font-size:17px;flex:1;line-height:1.3}
+.db{padding:16px 18px;overflow-y:auto;flex:1}
+.df{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+.f{margin-bottom:13px}
+.f label{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.f input,.f textarea,.f select{width:100%;background:#0d1428;border:1px solid var(--line);border-radius:9px;
+  color:var(--txt);font:inherit;font-size:13.5px;padding:9px 11px}
+.f input:focus,.f textarea:focus,.f select:focus{outline:none;border-color:var(--gold)}
+/* meniul nativ al listelor: fundal alb, scris inchis, ca sa fie lizibil pe orice sistem */
+select option, select optgroup{background:#ffffff;color:#111827}
+select:focus option:checked{background:#2f6ae0;color:#ffffff}
+.f textarea{min-height:86px;resize:vertical}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.close{background:none;border:none;color:var(--muted);font-size:24px;padding:0 4px;line-height:1}
+.close:hover{color:#fff;background:none}
+.view .f .v{font-size:13.5px;line-height:1.6;white-space:pre-wrap}
+.view .f .v.e{color:#5c6791;font-style:italic}
+.swatch{display:flex;gap:8px;margin-bottom:14px}
+.swatch div{flex:1;text-align:center;padding:9px;border-radius:9px;font-size:11px;font-weight:800;cursor:pointer;border:2px solid transparent}
+.sw-clasic{background:#fff;color:#1c2233}.sw-albastru{background:var(--blue);color:#fff}.sw-rosu{background:var(--red);color:#fff}
+.swatch div.sel{border-color:var(--gold)}
+
+.legend{max-width:1500px;margin:0 auto;padding:0 18px 50px;display:flex;gap:20px;flex-wrap:wrap;font-size:12px;color:var(--muted);align-items:center}
+.legend i{display:inline-block;width:22px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+
+/* ---------- TABURI ---------- */
+.vtabs{display:flex;gap:6px;margin-left:18px}
+.vt{background:var(--panel);border:1px solid var(--line);color:var(--muted);font-size:13px;padding:8px 14px}
+.vt.on{background:linear-gradient(180deg,#f5c451,#e0a92c);color:#2a1e00;border-color:#c9971f}
+
+/* ---------- LISTA ---------- */
+.tblwrap{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg2)}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.tbl th{background:#111a33;color:var(--muted);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);font-weight:800}
+table.tbl td{padding:11px 14px;border-bottom:1px solid rgba(43,56,102,.55);vertical-align:top}
+table.tbl tr:last-child td{border-bottom:none}
+table.tbl tr:hover td{background:rgba(255,255,255,.02)}
+td.cnr{width:46px;color:#5f6c9c;font-weight:800;text-align:center}
+td.cact{width:31%}
+td.cres{width:27%}
+td.csto{width:31%}
+td.cbtn{width:80px;text-align:right;white-space:nowrap}
+.actname{font-weight:700;font-size:13.5px}
+.cellname{width:calc(100% - 30px);background:transparent;border:1px solid transparent;border-radius:7px;
+  padding:5px 7px;font:inherit;font-weight:700;font-size:13.5px;color:var(--txt)}
+.cellname::placeholder{color:#4d5678}
+.cellname:hover{border-color:var(--line);background:#0d1428}
+.cellname:focus{outline:none;border-color:var(--gold);background:#0d1428}
+.actname.b-rosu{color:#ff8f8f}.actname.b-negru{color:#c3cad9}.actname.k-fizica{color:var(--txt)}.actname.k-mind{color:#43d69a}
+.actname.k-indiciu,.actname.k-search{color:#b9a1f5}
+.actname.k-desen{color:#8fb6ff}.actname.k-decizie{color:#f5c451}
+.actname.k-proba,.actname.k-logistic{color:var(--txt)}
+.actmeta{font-size:10.5px;color:var(--muted);margin-top:4px}
+.actmeta .bdot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.cellinput{width:100%;background:#0d1428;border:1px solid var(--line);border-radius:8px;color:var(--txt);
+  font:inherit;font-size:12.5px;padding:8px 10px;min-height:64px;resize:vertical}
+.cellinput:focus{outline:none;border-color:var(--gold)}
+.cellinput::placeholder{color:#4d5678}
+.stoprev{font-size:12px;color:#c6cfee;line-height:1.5;background:#0d1428;border:1px solid var(--line);
+  border-radius:8px;padding:8px 10px;max-height:76px;overflow:hidden;white-space:pre-wrap;margin-bottom:7px}
+.stohead{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:800;margin-bottom:4px}
+.mini{font-size:11.5px;padding:6px 9px}
+.listbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+.listbar .n{font-size:12px;color:var(--muted);margin-left:auto}
+
+/* ---------- MODAL STORY ---------- */
+.modal{position:fixed;inset:0;z-index:120;display:none;align-items:center;justify-content:center;
+  background:rgba(4,7,16,.7);backdrop-filter:blur(4px);padding:20px}
+.modal.open{display:flex}
+.mcard{width:min(680px,100%);max-height:90vh;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#151f3d,#0c1326);border:1px solid var(--line);border-radius:16px;
+  box-shadow:0 30px 70px rgba(0,0,0,.6)}
+.mh{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center}
+.mh h3{margin:0;font-size:17px;flex:1}
+.mb{padding:18px 20px;overflow-y:auto;flex:1}
+.mf{padding:13px 20px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap}
+.mb textarea#smText{min-height:280px;font-size:15px;line-height:1.65;font-family:Georgia,'Times New Roman',serif}
+.mnote{font-size:11.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+
+/* ---------- PRINT ---------- */
+#printarea{display:none}
+@media print{
+  body>*{display:none!important}
+  #printarea{display:block!important}
+  html,body{background:#fff!important}
+  @page{margin:14mm}
+  .psheet{page-break-after:always;display:flex;align-items:center;justify-content:center;min-height:250mm}
+  .psheet:last-child{page-break-after:auto}
+  .pframe{border:3px double #111;border-radius:6px;padding:20mm 16mm;width:100%;text-align:center;background:#fff}
+  .pkicker{font:700 9pt/1 'Segoe UI',sans-serif;letter-spacing:.32em;text-transform:uppercase;color:#666;margin-bottom:12mm}
+  .phead{font:800 20pt/1.2 'Segoe UI',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#111;margin-bottom:9mm}
+  .prule{width:40mm;height:2px;background:#111;margin:0 auto 10mm}
+  .ptext{font:400 14pt/1.85 Georgia,'Times New Roman',serif;color:#000;white-space:pre-wrap;text-align:left;max-width:150mm;margin:0 auto}
+  .pfoot{margin-top:14mm;font:400 8pt/1 'Segoe UI',sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#888}
+
+  /* ---- dosar complet ---- */
+  .dcover{page-break-after:always;text-align:center;padding-top:70mm}
+  .dcover .dk{font:700 9pt/1 'Segoe UI',sans-serif;letter-spacing:.34em;text-transform:uppercase;color:#777}
+  .dcover .dt{font:800 34pt/1.1 Georgia,serif;color:#111;letter-spacing:.06em;margin:6mm 0 3mm}
+  .dcover .dr{width:46mm;height:2px;background:#b8860b;margin:0 auto 5mm}
+  .dcover .ds{font:400 12pt/1.6 Georgia,serif;color:#444}
+  .dcover .dm{margin-top:26mm;font:400 9pt/1.7 'Segoe UI',sans-serif;color:#777}
+  .dsec{page-break-before:always}
+  .dh1{font:800 15pt/1.2 'Segoe UI',sans-serif;color:#111;letter-spacing:.1em;text-transform:uppercase;
+    border-bottom:2px solid #b8860b;padding-bottom:2mm;margin:0 0 6mm}
+  .dact{break-inside:avoid;page-break-inside:avoid;margin-bottom:5mm;padding:3mm 4mm;border:1px solid #ccc;border-left:4px solid #999;border-radius:2mm}
+  .dact.b-albastru{border-left-color:#2f6ae0}
+  .dact.b-rosu{border-left-color:#d62828}
+  .dact.b-decizie{border-left-color:#b8860b;background:#faf6ea}
+  .dact .dn{font:800 12pt/1.3 'Segoe UI',sans-serif;color:#111}
+  .dact .dmeta{font:600 7.5pt/1.4 'Segoe UI',sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#777;margin:1mm 0 2mm}
+  .dact .dtxt{font:400 10pt/1.55 Georgia,serif;color:#222;white-space:pre-wrap}
+  .dact .dfld{font:400 9pt/1.5 'Segoe UI',sans-serif;color:#444;margin-top:1.5mm}
+  .dact .dfld b{color:#111}
+  .dact .dpc{display:inline-block;background:#b8860b;color:#fff;font:800 8pt/1 'Segoe UI',sans-serif;
+    padding:1mm 2mm;border-radius:1mm;margin-left:2mm}
+  table.dtb{width:100%;border-collapse:collapse;font:400 9.5pt/1.45 'Segoe UI',sans-serif}
+  table.dtb th{background:#f0f0f0;color:#111;text-align:left;padding:2mm;border:1px solid #bbb;
+    font:700 8pt/1.2 'Segoe UI',sans-serif;letter-spacing:.08em;text-transform:uppercase}
+  table.dtb td{padding:2mm;border:1px solid #ccc;vertical-align:top;color:#222}
+  table.dtb tr{break-inside:avoid;page-break-inside:avoid}
+  .dnum{width:10mm;text-align:center;color:#777;font-weight:700}
+  .dempty{color:#999;font-style:italic}
+  .dmapsec{page-break-inside:avoid;break-inside:avoid;page-break-after:always}
+  .dmap{display:block;page-break-inside:avoid;break-inside:avoid}
+}
+.sq{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:5px}
+
+/* ==================== TELEFON ==================== */
+@media (max-width:760px){
+  .hw{padding:9px 12px;gap:10px}
+  .flag{width:30px;height:30px}
+  .ttl{font-size:15px}
+  .sub{font-size:9px}
+  .vtabs{order:3;width:100%;margin-left:0;gap:6px}
+  .vtabs .vt{flex:1;justify-content:center;padding:10px 6px;font-size:13px}
+  .acts{order:4;width:100%;margin-left:0;overflow-x:auto;flex-wrap:nowrap;
+    padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .acts button{flex:0 0 auto;padding:10px 12px}
+  .mapacts{flex-wrap:nowrap}
+  #saveflag,#whoflag{flex:0 0 auto}
+  .bar{padding:8px 12px}
+  .hint{font-size:11.5px}
+  .stage{padding:6px 10px 40px}
+  .cvwrap{max-height:none}
+  .zoombar{justify-content:center;position:sticky;bottom:8px;z-index:20;
+    background:rgba(10,15,30,.92);backdrop-filter:blur(8px);padding:8px;border-radius:12px;
+    border:1px solid var(--line)}
+  .legend{padding:0 12px 30px;gap:10px;font-size:11px}
+
+  /* tabelele devin carduri */
+  table.tbl,table.tbl tbody,table.tbl tr,table.tbl td{display:block;width:100%}
+  table.tbl thead{display:none}
+  table.tbl tr{border:1px solid var(--line);border-radius:12px;margin-bottom:12px;
+    background:linear-gradient(180deg,var(--panel),var(--bg2));padding:22px 4px 6px;position:relative}
+  table.tbl td{border:none;padding:8px 12px}
+  table.tbl td[data-l]:not([data-l=""]):not(.cnr)::before{
+    content:attr(data-l);display:block;font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--muted);font-weight:800;margin-bottom:5px}
+  td.cnr{position:absolute;top:6px;right:12px;width:auto;padding:2px 8px;font-size:11px;font-weight:800;
+    color:#8e9ac4;background:#0d1428;border:1px solid var(--line);border-radius:20px}
+  td.cnr::before{display:none}
+  .cellname{width:100%;background:#0d1428;border-color:var(--line)}
+  .cellinput{min-height:74px}
+  .cbtn{text-align:left}
+  .listbar{position:sticky;top:0;z-index:10;background:var(--bg);padding:8px 0}
+  .listbar .n{margin-left:0;width:100%}
+
+  /* panouri pe tot ecranul */
+  .drawer{width:100%}
+  .mcard{width:100%;max-height:92vh}
+  .mb textarea#smText{min-height:200px}
+  .gcard{padding:24px 18px}
+
+  /* tinte de atingere mai mari */
+  button,.mini{min-height:38px}
+  .node{width:230px}
+}
+@media (max-width:400px){
+  .node{width:210px}
+  .ttl{font-size:14px}
+}
+
+
+.gate{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(900px 500px at 50% 0%,rgba(245,196,81,.07),transparent 60%),#080d19}
+.gate.hidden{display:none}
+.gcard{width:min(370px,92vw);background:linear-gradient(180deg,#151f3d,#0d1428);border:1px solid #2b3866;
+  border-radius:18px;padding:30px 26px;text-align:center;box-shadow:0 30px 70px rgba(0,0,0,.6)}
+.gflag{width:52px;height:52px;border-radius:14px;margin:0 auto 16px;
+  background:repeating-conic-gradient(#0a0f1e 0% 25%,#f5c451 0% 50%) 50%/16px 16px;box-shadow:0 0 0 1px #2b3866}
+.gt{font-weight:800;letter-spacing:.14em;font-size:21px}.gt span{color:#f5c451}
+.gs{font-size:10.5px;color:#8d9ac6;letter-spacing:.16em;text-transform:uppercase;margin:6px 0 22px}
+.gcard input{width:100%;background:#0b1225;border:1px solid #2b3866;border-radius:10px;color:#e9edfa;
+  font:inherit;font-size:14px;padding:11px 13px;margin-bottom:10px}
+.gcard input:focus{outline:none;border-color:#f5c451}
+.gbtn{width:100%;justify-content:center;background:linear-gradient(180deg,#f5c451,#e0a92c);color:#2a1e00;
+  border-color:#c9971f;font-size:14px;padding:11px;margin-top:4px}
+.gbtn:disabled{opacity:.6;cursor:default}
+.gerr{color:#ff9b9b;font-size:12.5px;min-height:18px;margin-top:10px}
+.gnote{color:#5c6791;font-size:11px;line-height:1.5;margin-top:14px}
+.busy{position:absolute;top:-11px;right:8px;background:#3ddc97;color:#06301f;font-size:9.5px;font-weight:800;
+  padding:2px 7px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.4);white-space:nowrap;z-index:5}
+.busy.inline{position:static;display:inline-block;margin-left:8px;vertical-align:middle}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hw">
+    <div class="flag"></div>
+    <div>
+      <div class="ttl">THE <span>RACE</span> '26</div>
+      <div class="sub">BBSO · roadmap · v08-14.19:13</div>
+    </div>
+    <div class="vtabs">
+      <button class="vt on" data-v="map">Hartă</button>
+      <button class="vt" data-v="list">Listă activități</button>
+      <button class="vt" data-v="brain">Brainstorming</button>
+    </div>
+    <div class="acts">
+      <span class="mapacts" id="mapacts">
+        <button id="bAdd" class="gold">+ Căsuță</button>
+        <button id="bDraw">✎ Trage linie</button>
+        <div class="seg" id="wseg">
+          <button class="w-clasic on" data-c="clasic">Clasic</button>
+          <button class="w-albastru" data-c="albastru">Albastru</button>
+          <button class="w-rosu" data-c="rosu">Roșu</button>
+          <button class="w-negru" data-c="negru">Negru</button>
+        </div>
+              </span>
+      <span id="whoflag" style="font-size:11.5px;color:#5f6c9c;white-space:nowrap">●</span><span id="saveflag"></span>
+      <button id="bSave" class="gold">💾 Salvează</button>
+      <button id="bPdf" class="gold">⎙ PDF</button>
+      <button id="bExport">⭳ Export</button>
+      <button id="bImport">⭱ Import</button>
+      <input type="file" id="fIn" accept="application/json" style="display:none">
+    </div>
+  </div>
+</header>
+
+<div class="bar"><span class="hint" id="hint"></span></div>
+
+<div class="stage">
+  <div class="cvwrap" id="cvwrap"><div class="canvas" id="canvas"><svg class="wires" id="wires"></svg></div></div>
+  <div class="zoombar">
+    <button id="zOut">−</button><span id="zlabel">100%</span><button id="zIn">+</button>
+    <button id="zFit">Încadrează</button>
+  </div>
+</div>
+
+<div class="stage" id="stageList" style="display:none">
+  <div class="listbar">
+    <button id="bPrintAll" class="gold">⎙ Printează toate story-urile</button>
+    <button id="bAdd2">+ Activitate</button>
+    <span class="n" id="listCount"></span>
+  </div>
+  <div class="tblwrap">
+    <table class="tbl">
+      <thead><tr>
+        <th style="text-align:center">#</th>
+        <th>Activitate</th>
+        <th>Resurse / recuzită necesară</th>
+        <th>Story — textul din plic</th>
+        <th></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="stage" id="stageBrain" style="display:none">
+  <div class="listbar">
+    <button id="bAddIdea" class="gold">+ Idee</button>
+    <span class="n" id="brainCount"></span>
+  </div>
+  <div class="tblwrap">
+    <table class="tbl">
+      <thead><tr>
+        <th style="text-align:center;width:46px">#</th>
+        <th style="width:24%">Titlu idee</th>
+        <th>Descriere</th>
+        <th style="width:24%">Propunere: la ce activitate</th>
+        <th style="width:50px"></th>
+      </tr></thead>
+      <tbody id="brainBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal" id="storyModal">
+  <div class="mcard">
+    <div class="mh"><h3 id="smTitle">Story</h3><button class="close" id="smClose">×</button></div>
+    <div class="mb">
+      <div class="f"><label>Titlu scris pe plic</label><input id="smHead" placeholder="ex: INDICIUL 3"></div>
+      <div class="f"><label>Textul care intră în plic</label>
+        <textarea id="smText" placeholder="Scrie aici indiciul, ghicitoarea sau povestea pe care o găsește echipa în plic…"></textarea></div>
+      <div class="mnote">Textul se printează pe o pagină A4 separată, încadrat, cu literă mare — gata de tăiat și pus în plic.</div>
+    </div>
+    <div class="mf">
+      <button class="gold" id="smSave">Salvează</button>
+      <button id="smPrint">⎙ Printează plicul</button>
+      <button class="dgr" id="smDel" style="margin-left:auto">Șterge story-ul</button>
+    </div>
+  </div>
+</div>
+
+<div class="legend" id="legendBox">
+  <span><span class="sq" style="background:#fff"></span>căsuță clasică</span>
+  <span><span class="sq" style="background:#2f6ae0"></span>ramura albastră</span>
+  <span><span class="sq" style="background:#d62828"></span>ramura roșie</span>
+  <span><span class="sq" style="background:#0b0c10;box-shadow:0 0 0 1px #6b7488"></span>ramura neagră</span>
+  <span style="margin-left:10px">scris: <b style="color:#e05a5a">probă fizică</b> · <b style="color:#2ecc8f">mind game</b> · <b style="color:#a78bfa">indiciu</b></span>
+  <span><i style="background:#f5c451"></i>linie clasică</span>
+  <span><i style="background:#2f6ae0"></i>albastră</span>
+  <span><i style="background:#d62828"></i>roșie (skip)</span>
+  <span><i style="background:#0b0c10;box-shadow:0 0 0 1px #6b7488"></i>neagră</span>
+  <span><span class="piece">1</span> piesă din hartă</span>
+</div>
+
+<div id="printarea"></div>
+
+
+<div class="gate" id="gate">
+  <form class="gcard" id="gform" autocomplete="on">
+    <div class="gflag"></div>
+    <div class="gt">THE <span>RACE</span> '26</div>
+    <div class="gs">BBSO · acces echipa de organizare</div>
+    <input id="gn" placeholder="Numele tau (ca sa stie ceilalti cine editeaza)" autocomplete="name">
+    <input id="gu" placeholder="Utilizator" autocomplete="username" autocapitalize="off" spellcheck="false">
+    <input id="gp" type="password" placeholder="Parola" autocomplete="current-password">
+    <button type="submit" class="gbtn" id="gb">Intra</button>
+    <div class="gerr" id="gerr"></div>
+    <div class="gnote">Continutul e criptat. Fara parola corecta, harta nu se poate citi nici din sursa paginii.</div>
+  </form>
+</div>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="dh"><h2 id="dTitle">—</h2><button class="close" id="dClose">×</button></div>
+  <div class="db" id="dBody"></div>
+  <div class="df" id="dFoot"></div>
+</aside>
+
+<script>
+/* ==================== DATE ==================== */
+const KINDS={
+  indiciu:'Indiciu', search:'Search', fizica:'Probă fizică', mind:'Mind game',
+  desen:'Desenat', proba:'Probă', logistic:'Logistic', decizie:'Punct de decizie'
+};
+const BRANCH={clasic:'Clasic', albastru:'Albastru', rosu:'Roșu', negru:'Negru'};
+
+let STEPS=[], WIRES=[];
+const ENC={"s":"uW7x+E3Cy9XYZXICJAyKPw==","i":"zBXmj9lASPA1pjWJ","c":"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"};
+
+const WC={clasic:'#f5c451',albastru:'#2f6ae0',rosu:'#d62828',negru:'#12141a'};
+const ROW=112, LANE_I=90, LANE_P=400, NODE_W=250;
+
+let pos={}, moved={}, drawing=false, wireColor='clasic', src=null, sel=null, adding=false;
+let selWire=null, wDrag=null, wpTap=null;
+let ZOOM=1;
+function setZoom(z){
+  ZOOM=Math.max(.3,Math.min(1.4,z));
+  cv.style.transform='scale('+ZOOM+')';
+  cv.style.transformOrigin='0 0';
+  const w=cv.parentElement;
+  if(w) w.style.height=(cv.offsetHeight*ZOOM+20)+'px';
+  const lbl=document.getElementById('zlabel'); if(lbl) lbl.textContent=Math.round(ZOOM*100)+'%';
+}
+/* coordonate in spatiul hartii, indiferent de zoom */
+function cpt(e){
+  const r=cv.getBoundingClientRect();
+  return {x:(e.clientX-r.left)/ZOOM, y:(e.clientY-r.top)/ZOOM};
+}
+const cv=document.getElementById('canvas'), svg=document.getElementById('wires');
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function laneX(s){ return (s.k==='indiciu'||s.k==='search'||s.k==='decizie') ? LANE_I : LANE_P; }
+function tidy(){ pos={};moved={}; STEPS.forEach((s,i)=>pos[s.id]={x:laneX(s),y:58+i*ROW}); }
+function renumber(){
+  STEPS.sort((a,b)=>{
+    const A=pos[a.id]||{x:0,y:0}, B=pos[b.id]||{x:0,y:0};
+    return (A.y-B.y) || (A.x-B.x);
+  });
+  STEPS.forEach((s,i)=>s.nr=i+1);
+}
+function ensurePos(){ STEPS.forEach((s,i)=>{ if(!pos[s.id]) pos[s.id]={x:laneX(s),y:58+i*ROW}; }); }
+function height(){ let m=0; STEPS.forEach(s=>{m=Math.max(m,pos[s.id].y)}); return m+180; }
+
+/* ==================== RENDER ==================== */
+function render(){
+  ensurePos();
+  cv.querySelectorAll('.node,.rail,.lane,.rnum').forEach(e=>e.remove());
+  cv.style.height=height()+'px';
+
+  const rail=document.createElement('div');rail.className='rail';cv.appendChild(rail);
+  const l1=document.createElement('div');l1.className='lane';l1.style.left=LANE_I+'px';l1.textContent='Indicii / decizii';cv.appendChild(l1);
+  const l2=document.createElement('div');l2.className='lane';l2.style.left=LANE_P+'px';l2.textContent='Probe';cv.appendChild(l2);
+  STEPS.forEach(s=>{
+    const n=document.createElement('div');n.className='rnum';
+    n.style.top=(pos[s.id].y+14)+'px';n.textContent=s.nr;cv.appendChild(n);
+  });
+
+  STEPS.forEach(s=>{
+    const d=document.createElement('div');
+    d.className=`node ${s.b}${src===s.id?' src':''}${moved[s.id]?' moved':''}`;
+    d.dataset.id=s.id;d.style.left=pos[s.id].x+'px';d.style.top=pos[s.id].y+'px';
+    if(s.k==='decizie') d.style.width=(LANE_P-LANE_I+NODE_W)+'px';
+    d.innerHTML=`<div class="nt k-${s.k}">${esc(s.t)}${s.piesa?`<span class="piece">${s.piesa}</span>`:''}</div>
+      ${s.d?`<div class="nm">${esc(s.d)}</div>`:''}
+      <span class="chip k-${s.k}">${KINDS[s.k]}</span>
+      ${s.b!=='clasic'?`<span class="chip">${BRANCH[s.b]}</span>`:''}
+      ${s.todo?'<span class="todo">de decis</span>':''}`;
+    cv.appendChild(d);
+  });
+  let maxR=0;
+  STEPS.forEach(s=>{ const b=box(s.id); if(b) maxR=Math.max(maxR,b.x+b.w); });
+  const wrap=cv.parentElement;
+  cv.style.width=Math.max((wrap?wrap.clientWidth:900)-2, maxR+250)+'px';
+  requestAnimationFrame(()=>{ wiresDraw(); setZoom(ZOOM); });
+}
+function box(id){const el=cv.querySelector(`.node[data-id="${id}"]`);if(!el)return null;
+  return{x:pos[id].x,y:pos[id].y,w:el.offsetWidth,h:el.offsetHeight};}
+
+/* punctele de plecare/sosire + curbura implicită */
+/* Sageata intra pe latura cea mai apropiata a casutei tinta, natural.
+   Singura exceptie: liniile de skip din aceeasi banda ocolesc lateral,
+   ca sa nu treaca peste casutele dintre ele. */
+const GAP=9;
+let SPREAD={};
+function computeSpread(){
+  SPREAD={}; const arr=[], used=[];
+  WIRES.forEach((w,i)=>{
+    const A=box(w.a),B=box(w.b); if(!A||!B) return;
+    if(Math.abs(A.x-B.x)<60 && Math.abs(B.y-(A.y+A.h))>ROW*0.85)
+      arr.push({i, y0:Math.min(A.y,B.y), y1:Math.max(A.y+A.h,B.y+B.h)});
+  });
+  arr.sort((a,b)=>a.y0-b.y0).forEach(o=>{
+    let k=0;
+    while(used.some(u=>u.k===k && !(o.y1<u.y0 || o.y0>u.y1))) k++;
+    SPREAD[o.i]=k; used.push({k,y0:o.y0,y1:o.y1});
+  });
+}
+function outDir(B,p,k){
+  const cx=B.x+B.w/2, cy=B.y+B.h/2;
+  const vx=(p.x-cx)/((B.w/2)||1), vy=(p.y-cy)/((B.h/2)||1);
+  return Math.abs(vx)>=Math.abs(vy) ? {x:(vx>=0?1:-1)*k,y:0} : {x:0,y:(vy>=0?1:-1)*k};
+}
+function anchors(a,b,wi,w){
+  const A=box(a),B=box(b); if(!A||!B)return null;
+  const r=autoAnchors(A,B,wi);
+  if(w&&w.a1){ r.p1={x:A.x+w.a1.dx, y:A.y+w.a1.dy}; r.d1=outDir(A,r.p1,75); }
+  if(w&&w.a2){ r.p2={x:B.x+w.a2.dx, y:B.y+w.a2.dy}; r.d2=outDir(B,r.p2,75); }
+  return r;
+}
+function autoAnchors(A,B,wi){
+  const ac={x:A.x+A.w/2,y:A.y+A.h/2}, bc={x:B.x+B.w/2,y:B.y+B.h/2};
+  const dx=bc.x-ac.x, dy=bc.y-ac.y;
+  if(Math.abs(A.x-B.x)<60 && Math.abs(B.y-(A.y+A.h))>ROW*0.85){   // skip lung: ocolire laterala
+    const g=Math.min(190,80+Math.abs(dy)*.28)+(SPREAD[wi]||0)*34;
+    return {p1:{x:A.x+A.w,y:ac.y}, p2:{x:B.x+B.w+GAP,y:bc.y}, d1:{x:g,y:0}, d2:{x:g,y:0}};
+  }
+  if(Math.abs(dy)>Math.abs(dx)*.75){                              // vertical
+    const dn=dy>0, k=Math.max(40,Math.abs(dy)*.45);
+    return {p1:{x:ac.x, y:dn?A.y+A.h:A.y},
+            p2:{x:bc.x, y:dn?B.y-GAP:B.y+B.h+GAP},
+            d1:{x:0,y:dn?k:-k}, d2:{x:0,y:dn?-k:k}};
+  }
+  const rt=dx>0, k=Math.max(40,Math.abs(dx)*.45);                 // orizontal
+  return {p1:{x:rt?A.x+A.w:A.x, y:ac.y},
+          p2:{x:rt?B.x-GAP:B.x+B.w+GAP, y:bc.y},
+          d1:{x:rt?k:-k,y:0}, d2:{x:rt?-k:k,y:0}};
+}
+function hermite(P,t0,tn){
+  const n=P.length, T=[];
+  for(let i=0;i<n;i++){
+    if(i===0) T.push(t0);
+    else if(i===n-1) T.push(tn);
+    else T.push({x:(P[i+1].x-P[i-1].x)*.5, y:(P[i+1].y-P[i-1].y)*.5});
+  }
+  let d=`M${P[0].x},${P[0].y}`;
+  for(let i=0;i<n-1;i++){
+    const c1={x:P[i].x+T[i].x/3,     y:P[i].y+T[i].y/3};
+    const c2={x:P[i+1].x-T[i+1].x/3, y:P[i+1].y-T[i+1].y/3};
+    d+=` C${c1.x},${c1.y} ${c2.x},${c2.y} ${P[i+1].x},${P[i+1].y}`;
+  }
+  return d;
+}
+function geo(w,wi){
+  const an=anchors(w.a,w.b,wi,w); if(!an) return null;
+  const W=cv.clientWidth||2000, H=cv.scrollHeight||4000;
+  const wp=(w.pts||[]).map(q=>({x:Math.max(10,Math.min(an.p1.x+q.dx,W-10)), y:Math.max(10,Math.min(an.p1.y+q.dy,H-10))}));
+  const P=[an.p1, ...wp, an.p2];
+  const first=wp[0]||an.p2, last=wp[wp.length-1]||an.p1;
+  const cap=(v,ref)=>{
+    const m=Math.hypot(v.x,v.y)||1;
+    const lim=Math.max(60, 2.2*ref);
+    const f=Math.min(3*m, lim)/m;
+    return {x:v.x*f, y:v.y*f};
+  };
+  const t0=cap(an.d1, Math.hypot(first.x-an.p1.x, first.y-an.p1.y));
+  const tn=cap({x:-an.d2.x,y:-an.d2.y}, Math.hypot(an.p2.x-last.x, an.p2.y-last.y));
+  return {p1:an.p1, p2:an.p2, wp, d:hermite(P,t0,tn)};
+}
+function nearestT(el,x,y){
+  const L=el.getTotalLength(); let best=Infinity, bt=0;
+  for(let i=0;i<=120;i++){
+    const q=el.getPointAtLength(L*i/120);
+    const dd=(q.x-x)*(q.x-x)+(q.y-y)*(q.y-y);
+    if(dd<best){best=dd;bt=i/120;}
+  }
+  return bt;
+}
+function wiresDraw(){
+  const defs=`<defs>${Object.entries(WC).map(([k,v])=>
+    `<marker id="m-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="${v}"/></marker>`).join('')}</defs>`;
+  let out=defs;
+  computeSpread();
+  WIRES.forEach((w,i)=>{
+    const g=geo(w,i); if(!g) return;
+    const on=selWire===i;
+    if(w.c==='negru') out+=`<path d="${g.d}" fill="none" stroke="#aab3c6" stroke-width="${on?7:5.4}" opacity=".55"/>`;
+    out+=`<path d="${g.d}" fill="none" stroke="${WC[w.c]}" stroke-width="${on?4:(w.c==='clasic'?2:2.8)}"
+      ${w.c==='rosu'?'stroke-dasharray="8 5"':''}${w.c==='negru'?' stroke-dasharray="3 4"':''} marker-end="url(#m-${w.c})" opacity="${on?1:.92}"/>
+      <path class="hit" data-i="${i}" d="${g.d}" fill="none" stroke="transparent" stroke-width="22"></path>`;
+  });
+  svg.innerHTML=out;
+
+  if(selWire!==null && WIRES[selWire]){
+    const g=geo(WIRES[selWire],selWire);
+    const el=svg.querySelector(`.hit[data-i="${selWire}"]`);
+    let btn={x:(g.p1.x+g.p2.x)/2, y:(g.p1.y+g.p2.y)/2};
+    if(el){ const q=el.getPointAtLength(el.getTotalLength()*.16); btn={x:q.x,y:q.y}; }
+    let ov=g.wp.map((p,k)=>
+      `<circle class="wp" data-k="${k}" cx="${p.x}" cy="${p.y}" r="6" fill="#f5c451" stroke="#0a0f1e" stroke-width="2"><title>Trage ca să îndoi. Dublu-click = șterge punctul</title></circle>`).join('');
+    ov+=`<rect class="ep" data-e="1" x="${g.p1.x-6}" y="${g.p1.y-6}" width="12" height="12" rx="3"
+           fill="#3ddc97" stroke="#0a0f1e" stroke-width="2"><title>Trage: de unde pleacă linia</title></rect>
+         <rect class="ep" data-e="2" x="${g.p2.x-6}" y="${g.p2.y-6}" width="12" height="12" rx="3"
+           fill="#3ddc97" stroke="#0a0f1e" stroke-width="2"><title>Trage: unde ajunge vârful săgeții</title></rect>`;
+    ov+=`<g class="btn" data-act="reset" transform="translate(${btn.x-27},${btn.y-13})">
+        <rect width="24" height="24" rx="7" fill="#151f3d" stroke="#f5c451" stroke-width="1.5"/>
+        <text x="12" y="17" text-anchor="middle" font-size="13" fill="#f5c451" font-family="system-ui">↺</text></g>
+      <g class="btn" data-act="del" transform="translate(${btn.x+3},${btn.y-13})">
+        <rect width="24" height="24" rx="7" fill="#3a1c1c" stroke="#d62828" stroke-width="1.5"/>
+        <text x="12" y="17" text-anchor="middle" font-size="14" fill="#ff9b9b" font-family="system-ui">×</text></g>`;
+    svg.insertAdjacentHTML('beforeend',ov);
+  }
+
+  // varfuri intermediare de directie pe liniile lungi
+  WIRES.forEach((w,i)=>{
+    const el=svg.querySelector(`.hit[data-i="${i}"]`); if(!el) return;
+    const L=el.getTotalLength(); if(L<240) return;
+    let marks='';
+    for(let d=130; d<L-70; d+=170){
+      const q1=el.getPointAtLength(d), q2=el.getPointAtLength(Math.min(d+8,L));
+      const ang=Math.atan2(q2.y-q1.y, q2.x-q1.x)*180/Math.PI;
+      marks+=`<path d="M-6,-4.5 L4,0 L-6,4.5" fill="none" stroke="${WC[w.c]}" stroke-width="2.2" stroke-linecap="round"
+        transform="translate(${q1.x},${q1.y}) rotate(${ang})" opacity=".95"/>`;
+    }
+    if(marks) el.insertAdjacentHTML('beforebegin',marks);
+  });
+  svg.querySelectorAll('.hit').forEach(el=>el.addEventListener('pointerdown',e=>{
+    e.stopPropagation();
+    const i=+el.dataset.i;
+    if(selWire!==i){ selWire=i; wiresDraw(); hint(); }
+    const w=WIRES[i]; w.pts=w.pts||[];
+    const q=cpt(e); const x=q.x, y=q.y;
+    const g=geo(w,i);
+    let k=g.wp.findIndex(q=>Math.hypot(q.x-x,q.y-y)<16);
+    if(k>=0){ wDrag={i,k}; return; }
+    const path=svg.querySelector(`.hit[data-i="${i}"]`);
+    const tc=nearestT(path,x,y);
+    let idx=g.wp.length;
+    for(let j=0;j<g.wp.length;j++){ if(nearestT(path,g.wp[j].x,g.wp[j].y)>tc){ idx=j; break; } }
+    wDrag={i, k:null, idx, ox:x, oy:y};      // punctul se creeaza abia cand tragi
+  }));
+  svg.querySelectorAll('.ep').forEach(r=>r.addEventListener('pointerdown',e=>{
+    e.stopPropagation(); wDrag={i:selWire, ep:+r.dataset.e};
+  }));
+  svg.querySelectorAll('.wp').forEach(c=>{
+    c.addEventListener('pointerdown',e=>{
+      e.stopPropagation();
+      const k=+c.dataset.k, now=Date.now();
+      if(wpTap && wpTap.i===selWire && wpTap.k===k && now-wpTap.t<420){
+        wpTap=null; wDrag=null;
+        WIRES[selWire].pts.splice(k,1);
+        wiresDraw(); hint(); touch(); return;
+      }
+      wpTap={i:selWire,k,t:now};
+      wDrag={i:selWire,k};
+    });
+  });
+  svg.querySelectorAll('.btn').forEach(b=>b.addEventListener('pointerdown',e=>{
+    e.stopPropagation();
+    if(b.dataset.act==='del'){ WIRES.splice(selWire,1); selWire=null; }
+    else { const w=WIRES[selWire]; delete w.pts; delete w.a1; delete w.a2; }
+    wiresDraw(); hint(); touch();
+  }));
+}
+/* tragi de oriunde de pe linie */
+function wireMove(e){
+  if(!wDrag) return;
+  const w=WIRES[wDrag.i]; if(!w){ wDrag=null; return; }
+  const an=anchors(w.a,w.b,wDrag.i,w); if(!an) return;
+  const q=cpt(e); const x=q.x, y=q.y;
+  const cx=Math.max(10,Math.min(x,cv.clientWidth-10));
+  const cy=Math.max(10,Math.min(y,cv.scrollHeight-10));
+  if(wDrag.ep){
+    const N=box(wDrag.ep===1?w.a:w.b); if(!N) return;
+    const off={dx:cx-N.x, dy:cy-N.y};
+    if(wDrag.ep===1) w.a1=off; else w.a2=off;
+    wiresDraw(); return;
+  }
+  w.pts=w.pts||[];
+  if(wDrag.k===null){
+    if(Math.hypot(x-wDrag.ox,y-wDrag.oy)<3) return;   // click simplu = doar selectie
+    w.pts.splice(wDrag.idx,0,{dx:Math.max(10,Math.min(wDrag.ox,cv.clientWidth-10))-an.p1.x, dy:Math.max(10,Math.min(wDrag.oy,cv.scrollHeight-10))-an.p1.y});
+    wDrag.k=wDrag.idx;
+  }
+  w.pts[wDrag.k]={dx:cx-an.p1.x, dy:cy-an.p1.y};
+  wiresDraw();
+}
+
+/* ==================== DRAG vs CLICK ==================== */
+let dragId=null,ox=0,oy=0,sx=0,sy=0,didMove=false;
+cv.addEventListener('pointerdown',e=>{
+  const n=e.target.closest('.node');
+  if(!n){ if(selWire!==null && !wDrag){ selWire=null; wiresDraw(); hint(); } return; }
+  dragId=+n.dataset.id; didMove=false;
+  const q=cpt(e);
+  ox=q.x-pos[dragId].x; oy=q.y-pos[dragId].y;
+  sx=e.clientX; sy=e.clientY; e.preventDefault();
+});
+window.addEventListener('pointermove',e=>{
+  if(wDrag){ wireMove(e); return; }
+  if(dragId===null||drawing)return;
+  if(!didMove&&Math.abs(e.clientX-sx)<4&&Math.abs(e.clientY-sy)<4)return;
+  didMove=true; moved[dragId]=1;
+  const el=cv.querySelector(`.node[data-id="${dragId}"]`); if(el)el.classList.add('drag');
+  const q=cpt(e);
+  pos[dragId]={x:Math.max(0,q.x-ox),y:Math.max(0,q.y-oy)};
+  if(el){el.style.left=pos[dragId].x+'px';el.style.top=pos[dragId].y+'px';}
+  wiresDraw();
+});
+window.addEventListener('pointerup',()=>{
+  if(wDrag){ wDrag=null; touch(); return; }
+  if(dragId===null)return;
+  const id=dragId,el=cv.querySelector(`.node[data-id="${id}"]`); if(el)el.classList.remove('drag');
+  dragId=null;
+  if(didMove){renumber();render();setZoom(ZOOM);touch();return;}
+  if(drawing){
+    if(src===null){src=id;render();hint();}
+    else if(src===id){src=null;render();hint();}
+    else{WIRES.push({a:src,b:id,c:wireColor});src=null;render();hint();touch();}
+  } else openNode(id);
+});
+
+/* ==================== DRAWER ==================== */
+const FLD=[['t','Titlu','text'],['k','Tip','sel'],['b','Ramură','sel'],['piesa','Piesă din hartă (1-5, gol dacă nu)','text'],
+  ['d','Explicații / desfășurare','area'],['mat','Materiale necesare','area'],
+  ['dur','Durată estimată','text'],['loc','Locație','text'],['resp','Responsabil','text']];
+
+function openNode(id){
+  const s=STEPS.find(x=>x.id===id); if(!s)return;
+  sel=id; adding=false;
+  $('#dTitle').textContent=s.t;
+  $('#dBody').className='db view';
+  $('#dBody').innerHTML=`
+    <div class="swatch">
+      <div class="sw-${s.b} sel">${BRANCH[s.b]}</div>
+    </div>
+    <div class="f"><label>Tip</label><div class="v">${KINDS[s.k]}${s.todo?' · <b style="color:#3ddc97">de decis</b>':''}</div></div>
+    ${s.piesa?`<div class="f"><label>Piesă din hartă</label><div class="v"><span class="piece">${s.piesa}</span></div></div>`:''}
+    ${[['d','Explicații / desfășurare'],['mat','Materiale necesare'],['dur','Durată estimată'],['loc','Locație'],['resp','Responsabil']]
+      .map(([k,l])=>`<div class="f"><label>${l}</label><div class="v ${s[k]?'':'e'}">${s[k]?esc(s[k]):'— de completat —'}</div></div>`).join('')}`;
+  $('#dFoot').innerHTML=`<button class="gold" id="dEdit">✎ Editează</button><button class="dgr" id="dDel" style="margin-left:auto">Șterge căsuța</button>`;
+  $('#dEdit').onclick=()=>editNode(id);
+  $('#dDel').onclick=()=>{ if(!confirm('Ștergi căsuța „'+s.t+'"?'))return;
+    STEPS=STEPS.filter(x=>x.id!==id); WIRES=WIRES.filter(w=>w.a!==id&&w.b!==id); closeD(); render(); touch(); };
+  openD();
+}
+function editNode(id){
+  const s=STEPS.find(x=>x.id===id)||{};
+  $('#dTitle').textContent = adding ? 'Căsuță nouă' : 'Editezi: '+s.t;
+  $('#dBody').className='db';
+  $('#dBody').innerHTML=FLD.map(([k,l,ty])=>{
+    if(ty==='sel'){
+      const src2 = k==='k'?KINDS:BRANCH;
+      return `<div class="f"><label>${l}</label><select data-k="${k}">${
+        Object.entries(src2).map(([v,n])=>`<option value="${v}" ${s[k]===v?'selected':''}>${n}</option>`).join('')}</select></div>`;
+    }
+    if(ty==='area') return `<div class="f"><label>${l}</label><textarea data-k="${k}">${esc(s[k]||'')}</textarea></div>`;
+    return `<div class="f"><label>${l}</label><input data-k="${k}" value="${esc(s[k]||'')}"></div>`;
+  }).join('')+`<div class="f"><label>Stare</label><label style="text-transform:none;letter-spacing:0;color:var(--txt);font-size:13.5px">
+    <input type="checkbox" data-k="todo" ${s.todo?'checked':''} style="width:auto;margin-right:8px">Marchează „de decis"</label></div>`;
+  $('#dFoot').innerHTML=`<button class="gold" id="dSave">Salvează</button><button id="dCancel">Renunță</button>`;
+  $('#dSave').onclick=()=>{
+    const o = adding ? {id:Math.max(0,...STEPS.map(x=>x.id))+1, nr:STEPS.length+1} : s;
+    $('#dBody').querySelectorAll('[data-k]').forEach(el=>{
+      o[el.dataset.k] = el.type==='checkbox' ? (el.checked?1:0) : el.value;
+    });
+    o.piesa = o.piesa===''?undefined:o.piesa;
+    if(adding){ const y=height()-160; pos[o.id]={x:laneX(o),y}; STEPS.push(o); renumber(); }
+    adding=false; render(); touch(); openNode(o.id);
+  };
+  $('#dCancel').onclick=()=>{ if(adding){adding=false;closeD();} else openNode(id); };
+  openD();
+}
+function openD(){$('#drawer').classList.add('open');$('#scrim').classList.add('open');}
+function closeD(){sel=null;adding=false;$('#drawer').classList.remove('open');$('#scrim').classList.remove('open');render();}
+
+/* ==================== CONTROALE ==================== */
+function hint(){
+  $('#wseg').style.display = drawing ? '' : 'none';
+  $('#hint').innerHTML = drawing
+    ? (src===null?'Alege culoarea, apoi click pe căsuța <b>de plecare</b>…':'Acum click pe căsuța <b>de sosire</b>.')
+    : selWire!==null
+      ? 'Linie selectată: pătratele <b style=\"color:#3ddc97\">verzi</b> sunt capetele — trage-le unde vrei, inclusiv vârful săgeții. Trage de linie ca s-o îndoi. Dublu-click pe o bulină galbenă o șterge. <b>↺</b> readuce forma automată, <b>×</b> șterge linia.'
+      : 'Trage căsuțele ca să le rearanjezi. <b>Click</b> pe o căsuță deschide explicațiile. <b>Click pe o linie</b> ca s-o remodelezi.';
+}
+$('#bDraw').onclick=function(){drawing=!drawing;src=null;this.classList.toggle('on',drawing);
+  this.textContent=drawing?'✓ Gata cu liniile':'✎ Trage linie';render();hint();};
+$('#wseg').onclick=e=>{const b=e.target.closest('button');if(!b)return;wireColor=b.dataset.c;
+  document.querySelectorAll('#wseg button').forEach(x=>x.classList.toggle('on',x===b));};
+$('#bAdd').onclick=()=>{adding=true;editNode(null);};
+
+$('#bExport').onclick=()=>{
+  const blob=new Blob([JSON.stringify({STEPS,WIRES,pos},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='the-race-26.json';a.click();URL.revokeObjectURL(a.href);};
+$('#bImport').onclick=()=>$('#fIn').click();
+$('#fIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{
+    const j=JSON.parse(r.result);
+    const onlyIdeas = Array.isArray(j) ? j : ((j.IDEAS && !j.STEPS) ? j.IDEAS : null);
+    if(onlyIdeas){                                  // fisier doar cu idei: le adaug, nu inlocuiesc nimic
+      let nid=IDEAS.reduce((m,i)=>Math.max(m,i.id||0),0);
+      onlyIdeas.forEach(o=>IDEAS.push({id:++nid, t:o.t||'', d:o.d||'', a:(o.a??null)}));
+      touch(); setView('brain');
+      alert('Am adăugat '+onlyIdeas.length+' idei în Brainstorming.');
+      return;
+    }
+    if(j.STEPS)STEPS=j.STEPS; if(j.WIRES)WIRES=j.WIRES; if(j.pos)pos=j.pos; if(j.IDEAS)IDEAS=j.IDEAS;
+    renumber(); render(); touch();
+  }catch(x){alert('Fișier JSON invalid.');}};r.readAsText(f);e.target.value='';};
+$('#dClose').onclick=closeD;$('#scrim').onclick=closeD;
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ closeD(); if(selWire!==null){selWire=null;wiresDraw();hint();} }
+  if((e.key==='Delete'||e.key==='Backspace')&&selWire!==null&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){
+    e.preventDefault(); WIRES.splice(selWire,1); selWire=null; wiresDraw(); hint();
+  }
+});
+
+/* ==================== PERSISTENȚĂ (înlocuită la build) ==================== */
+function persist(){}
+let _pt=null;
+function touch(){ clearTimeout(_pt); _pt=setTimeout(()=>{ try{persist();}catch(e){} }, 400); }
+
+/* ==================== BRAINSTORMING ==================== */
+let IDEAS=[];
+function ideaId(){ return IDEAS.reduce((m,i)=>Math.max(m,i.id||0),0)+1; }
+function renderBrain(){
+  const tb=document.getElementById('brainBody'); if(!tb) return;
+  const opts=STEPS.map(st=>`<option value="${st.id}">${st.nr}. ${esc(st.t)}</option>`).join('');
+  tb.innerHTML=IDEAS.map((it,ix)=>`<tr data-iid="${it.id}">
+    <td class="cnr" data-l="#">${ix+1}</td>
+    <td data-l="Titlu idee"><input class="cellname" data-it="${it.id}" value="${esc(it.t||'')}" placeholder="Titlul ideii"></td>
+    <td data-l="Descriere"><textarea class="cellinput" data-id2="${it.id}" placeholder="Descrie ideea…">${esc(it.d||'')}</textarea></td>
+    <td data-l="Propunere: la ce activitate"><select class="cellinput" style="min-height:0;padding:8px" data-ia="${it.id}">
+      <option value="">— nehotărât —</option>${opts}</select></td>
+    <td class="cbtn" data-l=""><button class="mini dgr" data-ix="${it.id}">×</button></td>
+  </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:#5c6791;padding:26px">Nicio idee încă. Apasă „+ Idee".</td></tr>';
+  IDEAS.forEach(it=>{ const sel=tb.querySelector(`[data-ia="${it.id}"]`); if(sel) sel.value=it.a||''; });
+  document.getElementById('brainCount').textContent=IDEAS.length+' idei';
+  tb.querySelectorAll('[data-it]').forEach(el=>el.oninput=()=>{ const it=IDEAS.find(x=>x.id==el.dataset.it); if(it){it.t=el.value;touch();} });
+  tb.querySelectorAll('[data-id2]').forEach(el=>el.oninput=()=>{ const it=IDEAS.find(x=>x.id==el.dataset.id2); if(it){it.d=el.value;touch();} });
+  tb.querySelectorAll('[data-ia]').forEach(el=>el.onchange=()=>{ const it=IDEAS.find(x=>x.id==el.dataset.ia); if(it){it.a=el.value?+el.value:null;touch();} });
+  tb.querySelectorAll('[data-ix]').forEach(el=>el.onclick=()=>{
+    if(!confirm('Ștergi această idee?')) return;
+    IDEAS=IDEAS.filter(x=>x.id!=el.dataset.ix); touch(); renderBrain();
+  });
+}
+document.addEventListener('click',e=>{
+  if(e.target && e.target.id==='bAddIdea'){ IDEAS.push({id:ideaId(),t:'',d:'',a:null}); touch(); renderBrain();
+    const inp=document.querySelector('#brainBody tr:last-child [data-it]'); if(inp) inp.focus(); }
+});
+
+/* ==================== TABURI ==================== */
+let view='map';
+function setView(v){
+  view=v;
+  document.querySelectorAll('.vt').forEach(t=>t.classList.toggle('on',t.dataset.v===v));
+  document.querySelector('.stage').style.display = v==='map'?'':'none';
+  document.querySelector('.bar').style.display   = v==='map'?'':'none';
+  document.getElementById('legendBox').style.display = v==='map'?'':'none';
+  document.getElementById('stageList').style.display = v==='list'?'':'none';
+  const sb=document.getElementById('stageBrain'); if(sb) sb.style.display = v==='brain'?'':'none';
+  document.getElementById('mapacts').style.display = v==='map'?'':'none';
+  if(v==='list') renderList(); else if(v==='brain') renderBrain(); else render();
+}
+document.querySelectorAll('.vt').forEach(t=>t.onclick=()=>setView(t.dataset.v));
+
+/* ==================== LISTA ACTIVITĂȚILOR ==================== */
+const BCOL={clasic:'#ffffff',albastru:'#2f6ae0',rosu:'#d62828'};
+function renderList(){
+  const tb=document.getElementById('tbody');
+  tb.innerHTML=STEPS.map(s=>{
+    const has=s.story&&s.story.trim();
+    return `<tr data-id="${s.id}">
+      <td class="cnr" data-l="#">${s.nr??''}</td>
+      <td class="cact" data-l="Activitate">
+        <input class="cellname actname ${s.b==='rosu'?'b-rosu':(s.b==='negru'?'b-negru':'k-'+s.k)}" data-name="${s.id}" value="${esc(s.t)}">${s.piesa?`<span class="piece">${s.piesa}</span>`:''}
+        <div class="actmeta"><span class="bdot" style="background:${BCOL[s.b]}"></span>${KINDS[s.k]} · ${BRANCH[s.b]}${s.todo?' · de decis':''}</div>
+      </td>
+      <td class="cres" data-l="Resurse / recuzită"><textarea class="cellinput" data-res="${s.id}" placeholder="ex: 3 corzi, 2 țăruși, plicuri…">${esc(s.mat||'')}</textarea></td>
+      <td class="csto" data-l="Story — textul din plic">
+        ${has?`${s.storyHead?`<div class="stohead">${esc(s.storyHead)}</div>`:''}<div class="stoprev">${esc(s.story)}</div>
+              <button class="mini" data-story="${s.id}">✎ Editează</button>
+              <button class="mini" data-print="${s.id}">⎙ Printează</button>`
+            :`<button class="mini gold" data-story="${s.id}">+ Add story</button>`}
+      </td>
+      <td class="cbtn" data-l=""><button class="mini" data-open="${s.id}">Detalii</button></td>
+    </tr>`;
+  }).join('');
+  const n=STEPS.filter(s=>s.story&&s.story.trim()).length;
+  document.getElementById('listCount').textContent=`${STEPS.length} activități · ${n} story-uri scrise`;
+
+  tb.querySelectorAll('[data-name]').forEach(t=>{
+    t.oninput=()=>{ const s=STEPS.find(x=>x.id==t.dataset.name); if(s){ s.t=t.value; touch(); } };
+    t.onblur=()=>{ if(view==='map') render(); };
+  });
+  tb.querySelectorAll('[data-res]').forEach(t=>t.oninput=()=>{
+    const s=STEPS.find(x=>x.id==t.dataset.res); if(s){ s.mat=t.value; touch(); }
+  });
+  tb.querySelectorAll('[data-story]').forEach(b=>b.onclick=()=>openStory(+b.dataset.story));
+  tb.querySelectorAll('[data-print]').forEach(b=>b.onclick=()=>printStories([+b.dataset.print]));
+  tb.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{ setView('map'); openNode(+b.dataset.open); });
+}
+document.getElementById('bAdd2').onclick=()=>{ setView('map'); adding=true; editNode(null); };
+
+/* ==================== STORY ==================== */
+let storyId=null;
+function openStory(id){
+  const s=STEPS.find(x=>x.id===id); if(!s) return;
+  storyId=id;
+  document.getElementById('smTitle').textContent='Story — '+s.t;
+  document.getElementById('smHead').value = s.storyHead || defaultHead(s);
+  document.getElementById('smText').value = s.story || '';
+  document.getElementById('smDel').style.display = (s.story&&s.story.trim())?'':'none';
+  document.getElementById('storyModal').classList.add('open');
+  setTimeout(()=>document.getElementById('smText').focus(),60);
+}
+function defaultHead(s){
+  const t=s.t.toUpperCase();
+  return t.length>40 ? KINDS[s.k].toUpperCase() : t;
+}
+function closeStory(){ document.getElementById('storyModal').classList.remove('open'); storyId=null; }
+document.getElementById('smClose').onclick=closeStory;
+document.getElementById('storyModal').onclick=e=>{ if(e.target.id==='storyModal') closeStory(); };
+document.getElementById('smSave').onclick=()=>{
+  const s=STEPS.find(x=>x.id===storyId); if(!s) return;
+  s.storyHead=document.getElementById('smHead').value.trim();
+  s.story=document.getElementById('smText').value;
+  touch(); closeStory(); renderList();
+};
+document.getElementById('smDel').onclick=()=>{
+  const s=STEPS.find(x=>x.id===storyId); if(!s) return;
+  if(!confirm('Ștergi story-ul acestei activități?')) return;
+  delete s.story; delete s.storyHead; touch(); closeStory(); renderList();
+};
+document.getElementById('smPrint').onclick=()=>{
+  const s=STEPS.find(x=>x.id===storyId); if(!s) return;
+  s.storyHead=document.getElementById('smHead').value.trim();
+  s.story=document.getElementById('smText').value;
+  touch(); renderList(); printStories([s.id]);
+};
+
+/* ==================== PRINT PLICURI ==================== */
+function printStories(ids){
+  const list=STEPS.filter(s=>ids.includes(s.id) && s.story && s.story.trim());
+  if(!list.length){ alert('Nu e scris niciun story pentru asta.'); return; }
+  document.getElementById('printarea').innerHTML=list.map(s=>`
+    <div class="psheet"><div class="pframe">
+      <div class="pkicker">The Race &rsquo;26 &middot; BBSO</div>
+      <div class="phead">${esc(s.storyHead||defaultHead(s))}</div>
+      <div class="prule"></div>
+      <div class="ptext">${esc(s.story)}</div>
+      <div class="pfoot">activitatea ${s.nr??''}</div>
+    </div></div>`).join('');
+  window.print();
+}
+/* ---- harta desenata ca SVG pentru PDF ---- */
+const _mc=document.createElement('canvas').getContext('2d');
+function wrapTxt(text,font,maxw){
+  _mc.font=font;
+  const words=String(text||'').split(/\s+/).filter(Boolean); const lines=[]; let cur='';
+  words.forEach(w=>{ const t=cur?cur+' '+w:w;
+    if(_mc.measureText(t).width<=maxw) cur=t; else { if(cur) lines.push(cur); cur=w; } });
+  if(cur) lines.push(cur); return lines;
+}
+function mapSVG(){
+  const boxes={}; let maxX=0, maxY=0, minX=1e9, minY=1e9, bad=0;
+  STEPS.forEach(s=>{ const b=box(s.id); if(!b) return;
+    if(!b.w||!b.h) bad++;
+    boxes[s.id]=b;
+    maxX=Math.max(maxX,b.x+b.w); maxY=Math.max(maxY,b.y+b.h);
+    minX=Math.min(minX,b.x);     minY=Math.min(minY,b.y); });
+  if(!Object.keys(boxes).length || bad) return null;
+  let maxWX=maxX;
+
+  const defs=`<defs>${Object.entries(WC).map(([k,v])=>
+    `<marker id="pm-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="${v}"/></marker>`).join('')}</defs>`;
+
+  let wires='', wireMaxX=0;
+  WIRES.forEach((w,i)=>{ const g=geo(w,i); if(!g) return;
+    const nums=g.d.match(/-?\d+(\.\d+)?/g)||[];
+    for(let k=0;k<nums.length;k+=2) wireMaxX=Math.max(wireMaxX, parseFloat(nums[k]));
+    wires+=`<path d="${g.d}" fill="none" stroke="${WC[w.c]}" stroke-width="${w.c==='clasic'?1.8:2.4}"
+      ${w.c==='rosu'?'stroke-dasharray="7 4"':''} marker-end="url(#pm-${w.c})"/>`; });
+
+  const TITLE={fizica:'#c81e1e',mind:'#127c4a',indiciu:'#4c1d95',search:'#4c1d95',
+    desen:'#1e3a8a',decizie:'#a16207',proba:'#334155',logistic:'#5b6478'};
+  let nodes='', rail='';
+  STEPS.forEach(s=>{
+    const b=boxes[s.id]; if(!b) return;
+    rail+=`<text x="30" y="${b.y+20}" text-anchor="middle" font-family="Segoe UI,sans-serif"
+      font-size="11" font-weight="700" fill="#8a93ad">${s.nr??''}</text>`;
+    let fill='#ffffff', stroke='#c9d0e4', tcol=TITLE[s.k]||'#1c2233', mcol='#5a6178';
+    if(s.b==='albastru'){ fill='#c8ddff'; stroke='#2f6ae0'; tcol='#000000'; mcol='#2a3550'; }
+    else if(s.b==='rosu'){ fill='#d62828'; stroke='#a81c1c'; tcol='#ffffff'; mcol='rgba(255,255,255,.85)'; }
+    else if(s.b==='negru'){ fill='#111318'; stroke='#000000'; tcol='#ffffff'; mcol='rgba(255,255,255,.8)'; }
+    else if(s.k==='decizie'){ fill='#fdf6e3'; stroke='#e0c268'; }
+    const tf='700 12px Segoe UI, sans-serif';
+    const tl=wrapTxt(s.t, tf, b.w-24).slice(0,3);
+    const meta=(KINDS[s.k]||s.k)+(s.b!=='clasic'?' · '+BRANCH[s.b]:'')+(s.todo?' · DE DECIS':'');
+    nodes+=`<g><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="9" fill="${fill}" stroke="${stroke}" stroke-width="1.2"/>`;
+    tl.forEach((ln,k)=>{ nodes+=`<text x="${b.x+12}" y="${b.y+22+k*15}" font-family="Segoe UI,sans-serif"
+      font-size="12" font-weight="700" fill="${tcol}">${esc(ln)}</text>`; });
+    nodes+=`<text x="${b.x+12}" y="${b.y+22+tl.length*15+9}" font-family="Segoe UI,sans-serif"
+      font-size="8.5" font-weight="700" letter-spacing="0.6" fill="${mcol}">${esc(meta.toUpperCase())}</text>`;
+    if(s.piesa!=null && s.piesa!==''){
+      nodes+=`<rect x="${b.x+b.w-30}" y="${b.y+8}" width="22" height="17" rx="4" fill="#e0a92c"/>
+        <text x="${b.x+b.w-19}" y="${b.y+20}" text-anchor="middle" font-family="Segoe UI,sans-serif"
+        font-size="10" font-weight="800" fill="#2a1e00">${esc(s.piesa)}</text>`;
+    }
+    nodes+='</g>';
+  });
+
+  maxWX=Math.max(maxX, wireMaxX);
+  const X0=8;                                           // banda cu numere e mereu la stanga
+  const Y0=Math.max(0, minY-46);                        // pastrez capul de coloana
+  const W=maxWX+30-X0, H=maxY+40-Y0;
+  const lanes=`<text x="${LANE_I}" y="${Y0+18}" font-family="Segoe UI,sans-serif" font-size="9" font-weight="700"
+      letter-spacing="1.6" fill="#8a93ad">INDICII / DECIZII</text>
+    <text x="${LANE_P}" y="${Y0+18}" font-family="Segoe UI,sans-serif" font-size="9" font-weight="700"
+      letter-spacing="1.6" fill="#8a93ad">PROBE</text>
+    <line x1="60" y1="${Y0}" x2="60" y2="${Y0+H}" stroke="#e3e7f0" stroke-width="1"/>`;
+
+  return {X0,Y0,W,H, boxes:Object.values(boxes), body: defs+lanes+rail+wires+nodes};
+}
+
+let PAPER='A4';
+function pdfDossier(){
+  const box=document.createElement('div');
+  box.className='modal open';
+  box.innerHTML='<div class="mcard" style="width:min(430px,100%)">'+
+    '<div class="mh"><h3>Export PDF</h3><button class="close" id="pxC">×</button></div>'+
+    '<div class="mb"><div class="f"><label>Formatul hârtiei pentru hartă</label>'+
+    '<div style="display:flex;gap:9px;margin-top:4px">'+
+    '<button class="gold" id="pxA4" style="flex:1;justify-content:center">A4</button>'+
+    '<button class="gold" id="pxA3" style="flex:1;justify-content:center">A3</button></div></div>'+
+    '<div class="mnote">Pe <b>A4</b> harta se împarte pe mai multe pagini. Pe <b>A3</b> intră aproape dublu '+
+    'pe pagină, cu text la fel de mare — util dacă o printezi ca planșă pentru ședință.<br><br>'+
+    'După ce alegi, în fereastra de printare pune <b>Destinație: Save as PDF</b> și, pentru A3, '+
+    'verifică la <i>More settings</i> ca <b>Paper size</b> să fie A3.</div></div></div>';
+  document.body.appendChild(box);
+  const close=()=>box.remove();
+  box.onclick=e=>{ if(e.target===box) close(); };
+  box.querySelector('#pxC').onclick=close;
+  const go=fmt=>{ PAPER=fmt; close(); runDossier(); };
+  box.querySelector('#pxA4').onclick=()=>go('A4');
+  box.querySelector('#pxA3').onclick=()=>go('A3');
+}
+function runDossier(){
+  const prev=view;
+  if(prev!=='map'){ setView('map'); }
+  let st=document.getElementById('papersize');
+  if(!st){ st=document.createElement('style'); st.id='papersize'; document.head.appendChild(st); }
+  st.textContent = PAPER==='A3'
+    ? '@media print{ @page{ size: A3 portrait; margin: 12mm } }'
+    : '@media print{ @page{ size: A4 portrait; margin: 14mm } }';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    buildDossier();
+    window.print();
+    if(prev!=='map') setView(prev);
+  }));
+}
+function buildDossier(){
+  const d=new Date();
+  const stamp=d.toLocaleDateString('ro-RO')+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+  const bcls=s=>s.k==='decizie'?'b-decizie':(s.b==='albastru'?'b-albastru':(s.b==='rosu'?'b-rosu':''));
+  const fld=(l,v)=>v?`<div class="dfld"><b>${l}:</b> ${esc(v)}</div>`:'';
+
+  let h=`<div class="dcover">
+      <div class="dk">BBSO &middot; Tabara 2026</div>
+      <div class="dt">THE RACE '26</div>
+      <div class="dr"></div>
+      <div class="ds">Dosarul complet al traseului<br>Document intern pentru echipa de organizare</div>
+      <div class="dm">Generat ${stamp}<br>${STEPS.length} activitati &middot; ${IDEAS.length} idei in brainstorming</div>
+    </div>`;
+
+  const mp=mapSVG();
+  if(mp){
+    // zona utila a paginii, in mm
+    const UW=(PAPER==='A3')?269:182, UH=(PAPER==='A3')?386:263;
+    const sliceH=mp.W*(UH/UW);
+    const bx=mp.boxes;
+    const cuts=[mp.Y0]; let cur=mp.Y0; const end=mp.Y0+mp.H;
+    let guard=0;
+    while(end-cur>sliceH && guard++<40){
+      const target=cur+sliceH;
+      // taie doar prin spatiile libere dintre casute
+      const cands=bx.map(b=>b.y+b.h+10).filter(y=>y>cur+120 && y<=target).sort((a,b)=>b-a);
+      let best=null;
+      for(const y of cands){ if(!bx.some(b=>y>b.y-8 && y<b.y+b.h+8)){ best=y; break; } }
+      cuts.push(best==null?target:best); cur=cuts[cuts.length-1];
+    }
+    cuts.push(end);
+    const pages=cuts.length-1;
+    for(let k=0;k<pages;k++){
+      const y0=cuts[k], hh=cuts[k+1]-y0;
+      if(hh<=2) continue;
+      const hmm=Math.min(UH, UW*hh/mp.W).toFixed(1);
+      h+=`<div class="dsec dmapsec"><div class="dh1">Harta traseului${pages>1?` &middot; partea ${k+1} din ${pages}`:''}</div>
+        <svg class="dmap" viewBox="${mp.X0} ${y0} ${mp.W} ${hh}" width="100%" height="${hmm}mm"
+          preserveAspectRatio="xMidYMin meet" xmlns="http://www.w3.org/2000/svg">${mp.body}</svg></div>`;
+    }
+  }
+  h+=`<div class="dsec"><div class="dh1">Traseul complet</div>`;
+  STEPS.forEach((s,i)=>{
+    h+=`<div class="dact ${bcls(s)}">
+      <div class="dn">${i+1}. ${esc(s.t)}${s.piesa?`<span class="dpc">PIESA ${esc(s.piesa)}</span>`:''}</div>
+      <div class="dmeta">${KINDS[s.k]||s.k} &middot; traseu ${BRANCH[s.b]||s.b}${s.todo?' &middot; DE DECIS':''}</div>
+      ${s.d?`<div class="dtxt">${esc(s.d)}</div>`:'<div class="dtxt dempty">— fara detalii —</div>'}
+      ${fld('Materiale',s.mat)}${fld('Durata',s.dur)}${fld('Locatie',s.loc)}${fld('Responsabil',s.resp)}
+    </div>`;
+  });
+  h+=`</div>`;
+
+  const withMat=STEPS.filter(s=>s.mat&&s.mat.trim());
+  h+=`<div class="dsec"><div class="dh1">Lista de recuzita</div>
+    <table class="dtb"><thead><tr><th class="dnum">#</th><th style="width:38%">Activitate</th><th>Resurse / recuzita necesara</th><th style="width:18%">Responsabil</th></tr></thead><tbody>`;
+  if(withMat.length) withMat.forEach(s=>{
+    h+=`<tr><td class="dnum">${s.nr??''}</td><td>${esc(s.t)}</td><td>${esc(s.mat)}</td><td>${esc(s.resp||'')}</td></tr>`;
+  }); else h+=`<tr><td colspan="4" class="dempty">Nu e completata inca nicio recuzita.</td></tr>`;
+  h+=`</tbody></table></div>`;
+
+  const withStory=STEPS.filter(s=>s.story&&s.story.trim());
+  if(withStory.length){
+    h+=`<div class="dsec"><div class="dh1">Texte pentru plicuri</div>`;
+    withStory.forEach(s=>{
+      h+=`<div class="dact"><div class="dn">${esc(s.storyHead||defaultHead(s))}</div>
+        <div class="dmeta">activitatea ${s.nr??''} &middot; ${esc(s.t)}</div>
+        <div class="dtxt">${esc(s.story)}</div></div>`;
+    });
+    h+=`</div>`;
+  }
+
+  if(IDEAS.length){
+    h+=`<div class="dsec"><div class="dh1">Brainstorming</div>
+      <table class="dtb"><thead><tr><th class="dnum">#</th><th style="width:26%">Titlu idee</th><th>Descriere</th><th style="width:24%">Propunere</th></tr></thead><tbody>`;
+    IDEAS.forEach((it,ix)=>{
+      const st=STEPS.find(x=>x.id===it.a);
+      h+=`<tr><td class="dnum">${ix+1}</td><td>${esc(it.t||'')}</td><td>${esc(it.d||'')}</td>
+        <td>${st?esc(st.nr+'. '+st.t):'<span class="dempty">nehotarat</span>'}</td></tr>`;
+    });
+    h+=`</tbody></table></div>`;
+  }
+
+  document.getElementById('printarea').innerHTML=h;
+  window.print();
+}
+document.getElementById('bPdf').onclick=pdfDossier;
+
+document.getElementById('bPrintAll').onclick=()=>{
+  const ids=STEPS.filter(s=>s.story&&s.story.trim()).map(s=>s.id);
+  if(!ids.length){ alert('Nu ai scris încă niciun story.'); return; }
+  printStories(ids);
+};
+
+document.getElementById('bSave').onclick=()=>{ clearTimeout(_pt); try{persist();}catch(e){} };
+window.addEventListener('beforeunload',()=>{ clearTimeout(_pt); try{persist();}catch(e){} });
+
+document.getElementById('zIn').onclick=()=>setZoom(ZOOM+.15);
+document.getElementById('zOut').onclick=()=>setZoom(ZOOM-.15);
+document.getElementById('zFit').onclick=()=>{
+  const w=document.getElementById('cvwrap');
+  setZoom(Math.min(1,(w.clientWidth-8)/Math.max(1,cv.offsetWidth)));
+};
+/* ============ login, criptare, sincronizare live ============ */
+const DB=(typeof window!=='undefined'&&window.RACE_DB)||'https://the-race-26-default-rtdb.europe-west1.firebasedatabase.app';
+const ROOT='/race26';
+const LSKEY='race26data';
+
+const b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const b64e=b=>{let s='';const u=new Uint8Array(b);for(let i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return btoa(s);};
+
+let AESKEY=null, ME='', CID=Math.random().toString(36).slice(2,10);
+let lastSent={}, presence={}, ONLINE=false, esrc=null, seeded=false;
+
+/* ---------- criptare ---------- */
+async function deriveKey(user,pass){
+  const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(user+':'+pass),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(ENC.s),iterations:250000,hash:'SHA-256'},
+    base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function unlock(user,pass){
+  const key=await deriveKey(user,pass);
+  const out=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(ENC.i)},key,b64(ENC.c));
+  AESKEY=key;
+  return JSON.parse(new TextDecoder().decode(out));
+}
+async function encv(obj){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},AESKEY,new TextEncoder().encode(JSON.stringify(obj)));
+  return {i:b64e(iv), c:b64e(ct)};
+}
+async function decv(o){
+  if(!o||!o.i||!o.c) return null;
+  const out=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64(o.i)},AESKEY,b64(o.c));
+  return JSON.parse(new TextDecoder().decode(out));
+}
+
+/* ---------- retea ---------- */
+function fetchT(url,opts,ms){
+  const ctl=new AbortController();
+  const t=setTimeout(()=>ctl.abort(),ms||12000);
+  return fetch(url,Object.assign({},opts,{signal:ctl.signal})).finally(()=>clearTimeout(t));
+}
+function put(path,val){
+  return fetchT(DB+ROOT+path+'.json',{method:'PUT',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(val)}).then(r=>{ if(!r.ok) throw new Error('PUT '+r.status); return r; });
+}
+function hhmm(t){const d=new Date(t);return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+function flag(msg,col){
+  const el=document.getElementById('saveflag'); if(!el) return;
+  el.textContent=msg; el.style.color=col||'#3ddc97'; el.style.opacity=1;
+}
+function markSaved(){ dirtySince=0; flag('salvat '+hhmm(Date.now())); }
+let dirtySince=0, pushStart=0;
+function markDirty(){ if(!dirtySince) dirtySince=Date.now(); flag('nesalvat…','#f5c451'); }
+function localSave(){
+  if(!AESKEY) return;
+  encv({STEPS,WIRES,pos,IDEAS}).then(e=>{ try{ localStorage.setItem(LSKEY,JSON.stringify(e)); }catch(_){}} ).catch(()=>{});
+}
+
+/* ---------- trimite modificarile ---------- */
+let pushing=false, pushAgain=false;
+async function syncPush(){
+  if(!AESKEY) return;
+  markDirty();
+  localSave();
+  if(!ONLINE){ await reconnect(); if(!ONLINE){ flag('OFFLINE - doar local','#ffb4b4'); return; } }
+  if(pushing){ pushAgain=true; return; }
+  pushing=true; pushStart=Date.now();
+  try{
+    const jobs=[], ids=new Set();
+    STEPS.forEach((s,i)=>{
+      ids.add(s.id);
+      const rec=Object.assign({},s,{o:i});
+      const j=JSON.stringify(rec);
+      if(lastSent['s'+s.id]!==j){ lastSent['s'+s.id]=j; jobs.push(encv(rec).then(e=>put('/steps/'+s.id,e))); }
+    });
+    Object.keys(lastSent).forEach(k=>{
+      if(k[0]==='s' && k!=='s_' && !ids.has(+k.slice(1))){ delete lastSent[k]; jobs.push(put('/steps/'+k.slice(1),null)); }
+    });
+    const jw=JSON.stringify(WIRES);
+    if(lastSent.__w!==jw){ lastSent.__w=jw; jobs.push(encv(WIRES).then(e=>put('/wires',e))); }
+    const jp=JSON.stringify(pos);
+    if(lastSent.__p!==jp){ lastSent.__p=jp; jobs.push(encv(pos).then(e=>put('/pos',e))); }
+    const ji=JSON.stringify(IDEAS);
+    if(lastSent.__i!==ji){ lastSent.__i=ji; jobs.push(encv(IDEAS).then(e=>put('/ideas',e))); }
+    if(jobs.length){ await Promise.all(jobs); snapshot(); }
+    markSaved();
+  }catch(e){ ONLINE=false; flag('OFFLINE - doar local, reincerc…','#ffb4b4'); scheduleReconnect(); }
+  pushing=false;
+  if(pushAgain){ pushAgain=false; syncPush(); }
+}
+persist=syncPush;
+
+/* ---------- reconectare automata ---------- */
+let reconT=null;
+async function reconnect(){
+  try{
+    const r=await fetchT(DB+ROOT+'.json?shallow=true',{cache:'no-store'},8000);
+    if(r.ok){ ONLINE=true; listen(); beat(currentStep()); return true; }
+  }catch(_){}
+  ONLINE=false; return false;
+}
+function scheduleReconnect(){
+  clearTimeout(reconT);
+  reconT=setTimeout(async()=>{
+    if(await reconnect()){ flag('din nou online','#3ddc97'); syncPush(); }
+    else scheduleReconnect();
+  },8000);
+}
+window.addEventListener('online',()=>scheduleReconnect());
+
+/* ---------- copii de siguranta ---------- */
+let lastSnap=0;
+async function snapshot(force){
+  if(!ONLINE||!AESKEY) return;
+  const now=Date.now();
+  if(!force && now-lastSnap<180000) return;
+  lastSnap=now;
+  try{
+    await put('/backups/'+now, await encv({STEPS,WIRES,pos,IDEAS}));
+    const r=await fetch(DB+ROOT+'/backups.json?shallow=true',{cache:'no-store'});
+    const k=await r.json();
+    const keys=Object.keys(k||{}).map(Number).sort((a,b)=>a-b);
+    while(keys.length>20){ const old=keys.shift(); put('/backups/'+old,null).catch(()=>{}); }
+  }catch(_){}
+}
+async function openVersions(){
+  const box=document.createElement('div');
+  box.className='modal open'; box.id='verModal';
+  box.innerHTML='<div class="mcard" style="width:min(460px,100%)">'+
+    '<div class="mh"><h3>Copii de siguranță</h3><button class="close" id="vClose">×</button></div>'+
+    '<div class="mb" id="vBody">Se încarcă…</div>'+
+    '<div class="mf"><button class="gold" id="vNow">Fă o copie acum</button></div></div>';
+  document.body.appendChild(box);
+  const close=()=>box.remove();
+  box.onclick=e=>{ if(e.target===box) close(); };
+  box.querySelector('#vClose').onclick=close;
+  box.querySelector('#vNow').onclick=async()=>{ await snapshot(true); close(); openVersions(); };
+  try{
+    const r=await fetch(DB+ROOT+'/backups.json?shallow=true',{cache:'no-store'});
+    const k=await r.json();
+    const keys=Object.keys(k||{}).map(Number).sort((a,b)=>b-a);
+    const body=box.querySelector('#vBody');
+    if(!keys.length){ body.textContent='Încă nu există copii.'; return; }
+    body.innerHTML=keys.map(t=>{
+      const d=new Date(t);
+      return '<div class="f" style="display:flex;gap:10px;align-items:center;margin-bottom:9px">'+
+        '<span style="flex:1;font-size:13.5px">'+d.toLocaleDateString('ro-RO')+' &nbsp; '+hhmm(t)+'</span>'+
+        '<button class="mini" data-restore="'+t+'">Restaurează</button></div>';
+    }).join('');
+    body.querySelectorAll('[data-restore]').forEach(b=>b.onclick=async()=>{
+      if(!confirm('Înlocuiești harta actuală cu versiunea din '+hhmm(+b.dataset.restore)+'? Toți vor vedea această versiune.')) return;
+      const rr=await fetch(DB+ROOT+'/backups/'+b.dataset.restore+'.json',{cache:'no-store'});
+      const snap=await decv(await rr.json());
+      if(!snap) return alert('Copia nu a putut fi citită.');
+      STEPS=snap.STEPS; WIRES=snap.WIRES; if(snap.pos) pos=snap.pos; if(snap.IDEAS) IDEAS=snap.IDEAS;
+      lastSent={}; renumber(); render(); if(view==='list') renderList();
+      await syncPush(); close();
+    });
+  }catch(e){ box.querySelector('#vBody').textContent='Nu am putut citi copiile.'; }
+}
+
+/* ---------- primeste modificarile ---------- */
+function busyWith(id){
+  if(typeof storyId!=='undefined' && storyId===id) return true;
+  if(typeof sel!=='undefined' && sel===id && document.getElementById('drawer').classList.contains('open')) return true;
+  const a=document.activeElement;
+  if(a && (a.dataset) && (a.dataset.res==id || a.dataset.name==id)) return true;
+  return false;
+}
+async function applyStep(id,val){
+  if(val===null||val===undefined){
+    if(!busyWith(id)){ STEPS=STEPS.filter(s=>s.id!==id); delete lastSent['s'+id]; return true; }
+    return false;
+  }
+  const rec=await decv(val); if(!rec) return false;
+  const j=JSON.stringify(rec);
+  if(lastSent['s'+id]===j) return false;      // e chiar ce am scris eu
+  if(busyWith(id)) return false;              // nu suprascriu peste ce scriu chiar acum
+  lastSent['s'+id]=j;
+  const o=rec.o; delete rec.o;
+  const k=STEPS.findIndex(s=>s.id===id);
+  if(k<0) STEPS.splice(Math.min(o??STEPS.length,STEPS.length),0,rec); else STEPS[k]=rec;
+  return true;
+}
+async function applyTree(d){
+  let ch=false;
+  if(d && d.steps){
+    const ids=Object.keys(d.steps).map(Number);
+    const recs=[];
+    for(const id of ids){ const r=await decv(d.steps[id]); if(r) recs.push(r); }
+    if(recs.length){
+      recs.sort((a,b)=>(a.o??0)-(b.o??0));
+      recs.forEach(r=>{ lastSent['s'+r.id]=JSON.stringify(r); delete r.o; });
+      STEPS=recs; ch=true;
+    }
+  }
+  if(d && d.wires){ const w=await decv(d.wires); if(w){ WIRES=w; lastSent.__w=JSON.stringify(w); ch=true; } }
+  if(d && d.pos){ const p=await decv(d.pos); if(p){ pos=p; lastSent.__p=JSON.stringify(p); ch=true; } }
+  if(d && d.ideas){ const i2=await decv(d.ideas); if(i2){ IDEAS=i2; lastSent.__i=JSON.stringify(i2); ch=true; } }
+  if(d && d.presence) presence=d.presence;
+  return ch;
+}
+let redrawT=null;
+function redrawSoon(){
+  clearTimeout(redrawT);
+  redrawT=setTimeout(()=>{ renumber(); render(); if(view==='list') renderList(); if(view==='brain') renderBrain(); },120);
+}
+let evQ=Promise.resolve();
+function onEvent(ev,isPatch){
+  evQ=evQ.then(async()=>{
+    let d; try{ d=JSON.parse(ev.data); }catch(_){ return; }
+    const path=d.path, data=d.data;
+    if(path==='/'){ if(await applyTree(data)) redrawSoon(); updatePresence(); return; }
+    if(path.indexOf('/presence')===0){
+      if(path==='/presence') presence=data||{};
+      else { const cid=path.split('/')[2]; if(data===null) delete presence[cid]; else presence[cid]=data; }
+      updatePresence(); return;
+    }
+    if(path==='/steps'){
+      let ch=false;
+      for(const id of Object.keys(data||{})) if(await applyStep(+id,data[id])) ch=true;
+      if(ch) redrawSoon(); return;
+    }
+    if(path.indexOf('/steps/')===0){
+      const id=+path.split('/')[2];
+      if(await applyStep(id,data)) redrawSoon(); return;
+    }
+    if(path==='/wires'){ const w=await decv(data); if(w && JSON.stringify(w)!==lastSent.__w){ WIRES=w; lastSent.__w=JSON.stringify(w); redrawSoon(); } return; }
+    if(path==='/pos'){ const p=await decv(data); if(p && JSON.stringify(p)!==lastSent.__p){ pos=p; lastSent.__p=JSON.stringify(p); redrawSoon(); } return; }
+    if(path==='/ideas'){
+      const i2=await decv(data);
+      if(!i2 || JSON.stringify(i2)===lastSent.__i) return;
+      const a=document.activeElement;
+      const tr=a && a.closest ? a.closest('#brainBody tr[data-iid]') : null;
+      if(tr){
+        // pastrez doar ideea pe care o scriu chiar acum; restul vin de la remote
+        const eid=+tr.dataset.iid;
+        const mine=IDEAS.find(x=>x.id===eid);
+        IDEAS=i2.filter(x=>x.id!==eid);
+        if(mine){ const ix=i2.findIndex(x=>x.id===eid); IDEAS.splice(ix<0?IDEAS.length:ix,0,mine); }
+        lastSent.__i=''; markDirty();
+      } else {
+        IDEAS=i2; lastSent.__i=JSON.stringify(i2);
+        if(view==='brain') renderBrain();
+      }
+      return; }
+  }).catch(()=>{});
+}
+function listen(){
+  try{ if(esrc) esrc.close(); }catch(_){}
+  esrc=new EventSource(DB+ROOT+'.json');
+  esrc.addEventListener('put',e=>onEvent(e,false));
+  esrc.addEventListener('patch',e=>onEvent(e,true));
+  esrc.onerror=()=>{ /* EventSource se reconecteaza singur */ };
+}
+
+/* ---------- cine e online / cine editeaza ---------- */
+function beat(step){
+  if(!ONLINE) return;
+  put('/presence/'+CID,{n:ME||'cineva', s:(step===undefined?null:step), t:Date.now()}).catch(()=>{});
+}
+function others(){
+  const now=Date.now(), o={};
+  Object.keys(presence).forEach(k=>{
+    const v=presence[k];
+    if(k!==CID && v && v.t && now-v.t<90000) o[k]=v;
+  });
+  return o;
+}
+function updatePresence(){
+  const o=others(), n=Object.keys(o).length;
+  const el=document.getElementById('whoflag');
+  if(el){
+    const names=Object.keys(o).map(k=>o[k].n).filter(Boolean);
+    el.textContent = n? ('● '+n+' online: '+names.join(', ')) : '● doar tu';
+    el.style.color = n? '#3ddc97' : '#5f6c9c';
+  }
+  document.querySelectorAll('.busy').forEach(e=>e.remove());
+  Object.keys(o).forEach(k=>{
+    const v=o[k]; if(!v.s) return;
+    const nd=document.querySelector('.node[data-id="'+v.s+'"]');
+    if(nd){ const t=document.createElement('div'); t.className='busy'; t.textContent='✎ '+(v.n||'cineva'); nd.appendChild(t); }
+    const row=document.querySelector('#tbody tr[data-id="'+v.s+'"] .cact');
+    if(row){ const t=document.createElement('span'); t.className='busy inline'; t.textContent='✎ '+(v.n||'cineva'); row.appendChild(t); }
+  });
+}
+
+/* ---------- pornire ---------- */
+async function boot(baked){
+  let usedRemote=false;
+  try{
+    const r=await fetchT(DB+ROOT+'.json',{cache:'no-store'},12000);
+    if(r.ok){
+      ONLINE=true;
+      const d=await r.json();
+      if(d && d.steps){
+        usedRemote=await applyTree(d);
+        if(!usedRemote){
+          // Baza contine date pe care nu le pot descifra. NU le suprascriu.
+          document.getElementById('gerr').innerHTML=
+            'Baza de date contine date scrise cu alta parola sau alta versiune.<br>'+
+            'Nu le suprascriu. Anunta administratorul.';
+          document.getElementById('gb').disabled=false;
+          document.getElementById('gb').textContent='Intra';
+          throw new Error('DB_UNREADABLE');
+        }
+      }
+    }
+  }catch(e){ ONLINE=false; }
+
+  if(!usedRemote){
+    let local=null;
+    try{ const raw=localStorage.getItem(LSKEY); if(raw) local=await decv(JSON.parse(raw)); }catch(_){}
+    const d=local||baked;
+    STEPS=d.STEPS; WIRES=d.WIRES;
+    if(d.IDEAS) IDEAS=d.IDEAS;
+    if(d.pos) pos=d.pos; else tidy();
+  }
+  document.getElementById('gate').classList.add('hidden');
+  renumber(); render(); hint();
+
+  if(ONLINE){
+    if(!usedRemote){ seeded=true; await syncPush(); flag('am pornit baza comuna'); }
+    listen(); beat(); setInterval(()=>beat(currentStep()),25000); updatePresence();
+    setInterval(()=>{
+      if(pushing && Date.now()-pushStart>25000){ pushing=false; }
+      if(dirtySince && !pushing && Date.now()-dirtySince>10000) syncPush();
+    },5000);
+    setTimeout(()=>snapshot(true),4000); setInterval(()=>snapshot(),180000);
+    markSaved();
+  } else {
+    flag('OFFLINE - doar local, reincerc…','#ffb4b4');
+    scheduleReconnect();
+  }
+}
+function currentStep(){
+  if(typeof storyId!=='undefined' && storyId!==null) return storyId;
+  if(typeof sel!=='undefined' && sel!==null && document.getElementById('drawer').classList.contains('open')) return sel;
+  return null;
+}
+window.addEventListener('beforeunload',()=>{
+  try{ navigator.sendBeacon && navigator.sendBeacon(DB+ROOT+'/presence/'+CID+'.json?x-http-method-override=DELETE','null'); }catch(_){}
+  try{ fetch(DB+ROOT+'/presence/'+CID+'.json',{method:'DELETE',keepalive:true}); }catch(_){}
+});
+
+document.addEventListener('DOMContentLoaded',()=>{});
+(function(){
+  const b=document.createElement('button');
+  b.id='bVer'; b.textContent='⏱ Versiuni';
+  b.onclick=openVersions;
+  const ex=document.getElementById('bExport');
+  if(ex&&ex.parentNode) ex.parentNode.insertBefore(b,ex);
+})();
+
+/* ---------- formularul de login ---------- */
+document.getElementById('gform').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const b=document.getElementById('gb'), err=document.getElementById('gerr');
+  b.disabled=true; b.textContent='Se descuie…'; err.textContent='';
+  try{
+    const u=document.getElementById('gu').value.trim();
+    const pw=document.getElementById('gp').value;
+    ME=(document.getElementById('gn').value||'').trim();
+    const data=await unlock(u,pw);
+    try{ sessionStorage.setItem('race26',JSON.stringify({u:u,p:pw,n:ME})); }catch(_){}
+    await boot(data);
+  }catch(x){ err.textContent='Utilizator sau parola gresita.'; b.disabled=false; b.textContent='Intra'; }
+});
+(async()=>{
+  try{
+    const s=JSON.parse(sessionStorage.getItem('race26')||'null'); if(!s) return;
+    ME=s.n||'';
+    await boot(await unlock(s.u,s.p));
+  }catch(_){}
+})();
+function fitIfPhone(){ if(window.innerWidth<760) document.getElementById('zFit').click(); }
+setTimeout(fitIfPhone,900);
+window.addEventListener('orientationchange',()=>setTimeout(fitIfPhone,350));
+</script>
+</body>
+</html>
